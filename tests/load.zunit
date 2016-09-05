@@ -1,0 +1,20 @@
+#!/usr/bin/env zunit
+
+@test 'Test loading script with global variable sets the variable' {
+  load ./_support/script-with-global-variable;
+
+  assert "$lost_city" equals 'Atlantis';
+}
+
+@test 'Test loading script with local variable does not set the variable' {
+  load ./_support/script-with-local-variable;
+
+  assert "$lost_city" is_empty;
+}
+
+@test 'Test loading non-existent file throws error' {
+  run load ./non-existent-script;
+
+  assert "$state" equals 1;
+  assert "$output" same_as 'File tests/./non-existent-script does not exist';
+}

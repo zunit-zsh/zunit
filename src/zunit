@@ -1,0 +1,220 @@
+#!/usr/bin/env zsh
+
+local base=$(realpath ${0%/*})
+
+###
+# Output usage information and exit
+###
+function _zunit_usage() {
+  echo "\033[0;33mUsage:\033[0;m"
+  echo "  zunit [options] <tests...>"
+  echo
+  echo "\033[0;33mOptions:\033[0;m"
+  echo "  -h, --help         Output help text and exit"
+  echo "  -v, --version      Output version information and exit"
+}
+
+###
+# Execute a test and store the result
+###
+_zunit_execute_test() {
+  local name="$1" body="$2"
+
+  if [[ $body && $name ]]; then
+    # Update the progress indicator
+    revolver update "${name}"
+    sleep 0.1
+
+    # Make sure we don't already have a function defined
+    (( $+functions[__zunit_tmp_test_function] )) && \
+      unfunction __zunit_tmp_test_function
+
+    # Quietly eval the body into a variable as a first test
+    output=$(eval $(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT;\n  integer state;\n  local output;\n  typeset -a lines;\n${body}") 2>&1)
+
+    # Check the status of the eval, and output any errors
+    if [[ $? -ne 0 ]]; then
+      echo "$(color red '✘' ${name})"
+      echo "    $(color red underline "Failed to parse test body")"
+      echo "    $(color red $output)"
+      return 1
+    fi
+
+    # Run the eval again, this time within the current context so that
+    # the function is registered in the current scope
+    eval $(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT;\n  integer state;\n  local output;\n  typeset -a lines;\n${body}") 2>/dev/null
+
+    # Any errors should have been caught above, but if the function
+    # does not exist, we can't go any further
+    if (( ! $+functions[__zunit_tmp_test_function] )); then
+      echo "$(color red '✘' ${name})"
+      echo "    $(color red underline "Failed to parse test body")"
+      return 1
+    fi
+
+    # Execute the test body, and capture its output
+    output="$(__zunit_tmp_test_function 2>&1)"
+
+    # Output the result to the user
+    if [[ $? -eq 0 ]]; then
+      echo "$(color green '✔') ${name}"
+      return 0
+    else
+      echo "$(color red '✘' ${name})"
+      if [[ -n $output ]]; then
+        echo "    $(color red "${output}")"
+      fi
+      return 1
+    fi
+  fi
+}
+
+###
+# Run all tests within a file
+###
+function _zunit_run_testfile() {
+  local testbody testname pattern testfile="$1" testdir="$(dirname "$testfile")"
+
+  # A regex pattern to match test declarations
+  pattern='^ *@test  *([^ ].*)  *\{ *(.*)$'
+
+  # Loop through each of the lines in the file
+  IFS=$'\n' lines=($(cat $testfile))
+  for line in $lines[@]; do
+    # Match current line against pattern
+    if [[ "$line" =~ $pattern ]]; then
+      # If the pattern matched, we've reached the next test, so the first thing
+      # we do is execute the previous one if it exists
+      _zunit_execute_test "$testname" "$testbody"
+
+      # Now the test has been run, we can reset
+      # the testname and testbody variables
+      testbody=''
+      testname=''
+
+      # Get test name from matches
+      testname=${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}
+    else
+      [[ -z $testname ]] || testbody+="$line\n"
+    fi
+  done
+
+  # Since the loop has finished, we've reached the end of the file,
+  # but the last test won't have been executed yet, so we do it here
+  [[ -z $testname ]] || _zunit_execute_test "$testname" "$testbody"
+
+  # Reset the testbody and testname variables ready for the next file
+  testbody=''
+  testname=''
+}
+
+###
+# Parse a list of arguments
+###
+function _zunit_parse_argument() {
+  local argument="$1"
+
+  # If the argument begins with an underscore, then it
+  # should not be run, so we skip it
+  if [[ "${argument:0:1}" = "_" || "$(basename $argument | cut -c 1)" = "_" ]]; then
+    return
+  fi
+
+  # If the argument is a directory
+  if [[ -d $argument ]]; then
+    # Loop through each of the files in the directory
+    for file in $(find $argument -depth 1); do
+      # Run it through the parser again
+      _zunit_parse_argument $file
+    done
+
+    return
+  fi
+
+  # If it is a valid file
+  if [[ -f $argument ]]; then
+    # Grab the first line of the file
+    line=$(cat $argument | head -n 1)
+
+    # Check for the zunit shebang
+    if [[ $line = "#!/usr/bin/env zunit" ]]; then
+      # Add it to the array
+      testfiles[(( ${#testfiles} + 1 ))]=($argument)
+      return
+    fi
+
+    # The test file does not contain the zunit shebang, therefore
+    # we can't trust that running it will not be harmful, and throw
+    # a fatal error
+    echo $(color red "File '$argument' is not a valid zunit test file") >&2
+    echo "Test files must contain the following shebang on the first line" >&2
+    echo "  #!/usr/bin/env zunit" >&2
+    exit 1
+  fi
+
+  # The file could not be found, so we throw a fatal error
+  echo $(color red "Test file '$argument' could not be found") >&2
+  exit 1
+}
+
+###
+# Run tests
+###
+function _zunit_run() {
+  local arguments=("$@") testfiles=()
+
+  # Start the progress indicator
+  revolver start 'Loading tests'
+
+  # Source the helper functions before starting
+  # source "$base/src/helpers"
+
+  # If no arguments are passed, use the current directory
+  if [[ ${#arguments} -eq 0 ]]; then
+    arguments=("tests")
+  fi
+
+  # Loop through each of the passed arguments
+  local argument
+  for argument in $arguments; do
+    # Parse the argument, so that we end up with a list of valid files
+    _zunit_parse_argument $argument
+  done
+
+  # Loop through each of the test files and run them
+  local line
+  for testfile in $testfiles; do
+    _zunit_run_testfile $testfile
+  done
+
+  revolver stop
+}
+
+###
+# The main zunit process
+###
+function _zunit() {
+  local help version ctx="$1"
+
+  zparseopts -D \
+    h=help -help=help \
+    v=version -version=version
+
+  # If the help option is passed,
+  # output usage information and exit
+  if [[ $help ]]; then
+    _zunit_usage
+    exit 0
+  fi
+
+  # If the version option is passed,
+  # output version information and exit
+  if [[ $version ]]; then
+    echo '0.1.0'
+    exit 0
+  fi
+
+  _zunit_run "$@"
+}
+
+_zunit "$@"
