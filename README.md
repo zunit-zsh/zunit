@@ -4,6 +4,7 @@ ZUnit is a powerful unit testing framework for ZSH
 
 ## Installation
 
+> **WARNING**: Although the majority of Zulu's functionality works as expected, it is in the early stages of development, and as such bugs are likely to be present. Please continue with caution, and [report any issues](https://github.com/zulu-zsh/zulu/issues/new) you may have.
 
 ### [Zulu](https://github.com/zulu-zsh/zulu)
 
@@ -53,7 +54,7 @@ The following assertions are available:
 Asserts that two integers are equal to each other.
 
 ```sh
-assert 1 equals 1
+assert 1 equals 1;
 ```
 
 #### not_equal_to
@@ -61,7 +62,7 @@ assert 1 equals 1
 Asserts that two integers are not equal to each other.
 
 ```sh
-assert 1 not_equal_to 0
+assert 1 not_equal_to 0;
 ```
 
 #### same_as
@@ -69,7 +70,7 @@ assert 1 not_equal_to 0
 Asserts that two strings are equal to each other.
 
 ```sh
-assert 'test' same_as 'test'
+assert 'test' same_as 'test';
 ```
 
 #### different_to
@@ -77,7 +78,7 @@ assert 'test' same_as 'test'
 Asserts that two strings are not equal to each other.
 
 ```sh
-assert 'rainbows' different_to 'unicorns'
+assert 'rainbows' different_to 'unicorns';
 ```
 
 #### is_empty
@@ -85,8 +86,8 @@ assert 'rainbows' different_to 'unicorns'
 Asserts that a string has a length of zero.
 
 ```sh
-value=''
-assert "$value" is_empty
+value='';
+assert "$value" is_empty;
 ```
 
 #### is_not_empty
@@ -94,8 +95,8 @@ assert "$value" is_empty
 Asserts that a string has a length of greater than zero.
 
 ```sh
-value='rainbows'
-assert $value is_not_empty
+value='rainbows';
+assert $value is_not_empty;
 ```
 
 #### matches
@@ -103,7 +104,7 @@ assert $value is_not_empty
 Asserts that a string matches a regular expression.
 
 ```sh
-assert 'unicorns' matches '[a-z]{8}'
+assert 'unicorns' matches '[a-z]{8}';
 ```
 
 #### does_not_match
@@ -111,7 +112,7 @@ assert 'unicorns' matches '[a-z]{8}'
 Asserts that a string does not match a regular expression.
 
 ```sh
-assert 'rainbows' does_not_match '[0-9]+'
+assert 'rainbows' does_not_match '[0-9]+';
 ```
 
 #### in
@@ -119,7 +120,7 @@ assert 'rainbows' does_not_match '[0-9]+'
 Asserts that a value is included in the comparison array.
 
 ```sh
-assert 'a' in 'a' 'b' 'c'
+assert 'a' in 'a' 'b' 'c';
 ```
 
 #### not_in
@@ -127,7 +128,7 @@ assert 'a' in 'a' 'b' 'c'
 Asserts that a value is not included in the comparison array.
 
 ```sh
-asserts 'a' not_in 'x' 'y' 'z'
+asserts 'a' not_in 'x' 'y' 'z';
 ```
 
 ### Loading scripts
@@ -142,12 +143,12 @@ testing='Tada!'
 
 # In /tests/myscript.zunit
 @test 'Test loading scripts' {
-	testing=''
+	testing='';
 
-	load ../myscript
+	load ../myscript;
 
-	assert $testing is_not_empty
-	assert $testing same_as 'Tada!'
+	assert $testing is_not_empty;
+	assert $testing same_as 'Tada!';
 }
 ```
 
@@ -158,18 +159,18 @@ You can run commands within your tests using the `run` helper, allowing you to m
 ```sh
 @test 'Test command output' {
 	# Run the command, including arguments
-	run ls ~/my-dir
+	run ls ~/my-dir;
 
 	# $state contains the exit status
-	assert $state equals 0
+	assert $state equals 0;
 
 	# The command's output is stored in $output
-	assert $output is_not_empty
+	assert $output is_not_empty;
 
 	# Each line of the output is also stored in
 	# the $lines array, allowing you to run assertions
 	# against individual lines of the output
-	assert "$lines[3]" equals 'my-third-file'
+	assert "$lines[3]" equals 'my-third-file';
 }
 ```
 
