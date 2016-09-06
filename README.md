@@ -4,7 +4,7 @@ ZUnit is a powerful unit testing framework for ZSH
 
 ## Installation
 
-> **WARNING**: Although the majority of Zulu's functionality works as expected, it is in the early stages of development, and as such bugs are likely to be present. Please continue with caution, and [report any issues](https://github.com/zulu-zsh/zulu/issues/new) you may have.
+> **WARNING**: Although the majority of ZUnit's functionality works as expected, it is in the early stages of development, and as such bugs are likely to be present. Please continue with caution, and [report any issues](https://github.com/molovo/zunit/issues/new) you may have.
 
 ### [Zulu](https://github.com/zulu-zsh/zulu)
 
