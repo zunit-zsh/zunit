@@ -4,6 +4,7 @@ ZUnit is a powerful unit testing framework for ZSH
 
 ## Installation
 
+
 ### [Zulu](https://github.com/zulu-zsh/zulu)
 
 ```sh
@@ -36,7 +37,10 @@ Tests in ZUnit have a simple syntax, which is inspired by the [BATS](https://git
 }
 ```
 
-The body of each test can contain any valid ZSH code. The zunit shebang `#!/usr/bin/env zunit` **MUST** appear at the top of each test file, or ZUnit will not run it.
+The body of each test can contain any valid ZSH code, with two small, but very important caveats:
+
+* The zunit shebang `#!/usr/bin/env zunit` **MUST** appear at the top of each test file, or ZUnit will not run it.
+* Each command within the test body **MUST** be terminated with a semicolon.
 
 ### Assertions
 
