@@ -1,5 +1,2 @@
-files: ./src/**/*
-run: make build && make test
----
 files: ./tests/**/*
-run: make test
+run: zunit

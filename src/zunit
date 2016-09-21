@@ -214,6 +214,9 @@ function _zunit() {
     exit 0
   fi
 
+  source "$base/assertions"
+  source "$base/helpers"
+
   _zunit_run "$@"
 }
 
