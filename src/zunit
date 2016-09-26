@@ -30,7 +30,7 @@ _zunit_execute_test() {
       unfunction __zunit_tmp_test_function
 
     # Quietly eval the body into a variable as a first test
-    output=$(eval $(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT;\n  integer state;\n  local output;\n  typeset -a lines;\n${body}") 2>&1)
+    output=$(eval "$(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT\n  integer state\n  local output\n  typeset -a lines\n${body}")" 2>&1)
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
@@ -42,7 +42,7 @@ _zunit_execute_test() {
 
     # Run the eval again, this time within the current context so that
     # the function is registered in the current scope
-    eval $(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT;\n  integer state;\n  local output;\n  typeset -a lines;\n${body}") 2>/dev/null
+    eval "$(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT\n  integer state\n  local output\n  typeset -a lines\n${body}")" 2>/dev/null
 
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
