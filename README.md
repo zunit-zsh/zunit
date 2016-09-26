@@ -17,8 +17,8 @@ zulu install zunit
 ```sh
 git clone https://github.com/molovo/zunit
 cd ./zunit
-chmod u+x ./src/zunit
-cp ./src/zunit /usr/local/bin
+chmod u+x ./zunit
+cp ./zunit /usr/local/bin
 ```
 
 > For best results, the utilities [Color](https://github.com/molovo/color) and [Revolver](https://github.com/molovo/revolver) should be installed, and in your `$PATH`. The zulu installation method will install these dependencies for you.
