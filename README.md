@@ -124,7 +124,47 @@ assert 'a' in 'a' 'b' 'c'
 Asserts that a value is not included in the comparison array.
 
 ```sh
-asserts 'a' not_in 'x' 'y' 'z'
+assert 'a' not_in 'x' 'y' 'z'
+```
+
+#### exists
+
+Asserts that the given path exists
+
+```sh
+assert /path/to/file exists
+```
+
+#### is_file
+
+Asserts that the given path exists and is a file
+
+```sh
+assert /path/to/file is_file
+```
+
+#### is_dir
+
+Asserts that the given path exists and is a directory
+
+```sh
+assert /path/to/dir is_dir
+```
+
+#### is_link
+
+Asserts that the given path exists and is a symbolic link
+
+```sh
+assert /path/to/link is_link
+```
+
+#### is_readable
+
+Asserts that the given path exists and is a symbolic readable
+
+```sh
+assert /path/to/file is_readable
 ```
 
 ### Loading scripts

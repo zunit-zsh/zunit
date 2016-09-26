@@ -135,3 +135,70 @@
   assert "$state" equals 1
   assert "$output" same_as "'a' is in (a ; b ; c)"
 }
+
+@test 'Test _zunit_assert_exists success' {
+  run assert './assertions.zunit' exists
+  assert "$state" equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test _zunit_assert_exists failure' {
+  run assert './non-existent-file' exists
+  assert "$state" equals 1
+  assert "$output" same_as "'./non-existent-file' does not exist"
+}
+
+@test 'Test _zunit_assert_is_file success' {
+  run assert './assertions.zunit' is_file
+  assert "$state" equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test _zunit_assert_is_file failure' {
+  run assert './_support' is_file
+  assert "$state" equals 1
+  assert "$output" same_as "'./_support' does not exist or is not a file"
+}
+
+@test 'Test _zunit_assert_is_dir success' {
+  run assert './_support' is_dir
+  assert "$state" equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test _zunit_assert_is_dir failure' {
+  run assert './assertions.zunit' is_dir
+  assert "$state" equals 1
+  assert "$output" same_as "'./assertions.zunit' does not exist or is not a directory"
+}
+
+@test 'Test _zunit_assert_is_link success' {
+  run assert './_support/assertions.zunit.link' is_link
+  assert "$state" equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test _zunit_assert_is_link failure' {
+  run assert './assertions.zunit' is_link
+  assert "$state" equals 1
+  assert "$output" same_as "'./assertions.zunit' does not exist or is not a symbolic link"
+}
+
+@test 'Test _zunit_assert_is_readable success' {
+  run assert './assertions.zunit' is_readable
+  assert "$state" equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test _zunit_assert_is_readable failure' {
+  # Make file unreadable before checking it
+  chmod 000 "$testdir/_support/non-readable-file"
+
+  run assert './_support/non-readable-file' is_readable
+
+  # Change permissions back before the test makes its assertions
+  chmod 644 "$testdir/_support/non-readable-file"
+
+  assert "$state" equals 1
+  assert "$output" same_as "'./_support/non-readable-file' does not exist or is not readable"
+}
