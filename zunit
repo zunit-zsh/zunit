@@ -1,6 +1,219 @@
 #!/usr/bin/env zsh
 
-local base=$(realpath ${0%/*})
+################################
+# Internal assertion functions #
+################################
+
+###
+# Assert that two integers are equal
+###
+function _zunit_assert_equals() {
+  local value=$1 comparison=$2
+
+  [[ $value -eq $comparison ]] && return 0
+
+  echo "'$value' is not equal to '$comparison'"
+  exit 1
+}
+
+###
+# Assert that two integers are not equal
+###
+function _zunit_assert_not_equal_to() {
+  local value=$1 comparison=$2
+
+  [[ $value -ne $comparison ]] && return 0
+
+  echo "'$value' is equal to '$comparison'"
+  exit 1
+}
+
+###
+# Assert that two string are the same
+###
+function _zunit_assert_same_as() {
+  local value=$1 comparison=$2
+
+  [[ $value = $comparison ]] && return 0
+
+  echo "'$value' is not the same as '$comparison'"
+  exit 1
+}
+
+###
+# Assert that two string are different
+###
+function _zunit_assert_different_to() {
+  local value=$1 comparison=$2
+
+  [[ $value != $comparison ]] && return 0
+
+  echo "'$value' is the same as '$comparison'"
+  exit 1
+}
+
+###
+# Assert that a value is empty
+###
+function _zunit_assert_is_empty() {
+  local value=$1
+
+  [[ -z ${value[@]} ]] && return 0
+
+  echo "'${value[@]}' is not empty"
+  exit 1
+}
+
+###
+# Assert that a value is not empty
+###
+function _zunit_assert_is_not_empty() {
+  local value=$1
+
+  [[ -n ${value[@]} ]] && return 0
+
+  echo "value is empty"
+  exit 1
+}
+
+###
+# Assert that the value matches a regex pattern
+###
+function _zunit_assert_matches() {
+  local value=$1 pattern=$2
+
+  [[ $value =~ $pattern ]] && return 0
+
+  echo "'$value' does not match /$pattern/"
+  exit 1
+}
+
+###
+# Assert that the value does not match a regex pattern
+###
+function _zunit_assert_does_not_match() {
+  local value=$1 pattern=$2
+
+  [[ ! $value =~ $pattern ]] && return 0
+
+  echo "'$value' matches /$pattern/"
+  exit 1
+}
+
+###
+# Assert that a value is found in an array
+###
+function _zunit_assert_in() {
+  local i found=0 value=$1 array=(${(@)@:2})
+
+  for i in ${(@f)array}; do
+    [[ $i = $value ]] && found=1
+  done
+
+  [[ $found -eq 1 ]] && return 0
+
+  echo "'$value' is not in (${(@z)array})"
+  exit 1
+}
+
+###
+# Assert that a value is not found in an array
+###
+function _zunit_assert_not_in() {
+  local i found=0 value=$1 array=(${(@)@:2})
+
+  for i in ${(@f)array}; do
+    [[ $i = $value ]] && found=1
+  done
+
+  [[ $found -eq 0 ]] && return 0
+
+  echo "'$value' is in (${(@z)array})"
+  exit 1
+}
+
+################################
+# Helpers for use within tests #
+################################
+
+###
+# Find a file, and load it into the environment
+###
+function load() {
+  local name="$1"
+  local filename
+
+  # If filepath is absolute, then use it as is
+  if [[ "${name:0:1}" = "/" ]]; then
+    filename="${name}"
+  # If it's relative, prepend the test directory
+  else
+    filename="$testdir/${name}"
+  fi
+
+  # Check if the file exists
+  if [[ -f "$filename" ]]; then
+    # Source the file and exit if it's found
+    source "$filename"
+    return 0
+  fi
+
+  # Perform the check again, adding the .zsh extension
+  if [[ -f "$filename.zsh" ]]; then
+    # Source the file and exit if it's found
+    source "$filename.zsh"
+    return 0
+  fi
+
+  # Output an error message to the user
+  echo "File $filename does not exist" >&2
+  exit 1
+}
+
+###
+# Run an external command and capture its output and exit status
+###
+function run() {
+  # Stop the shell from exiting on error temporarily
+  unsetopt ERR_EXIT
+
+  # Preserve current $IFS
+  local oldIFS=$IFS
+
+  # Store lines of output in an array
+  IFS=$'\n' lines=($("$@" 2>&1))
+
+  # Get the process exit state
+  state="$?"
+
+  # Store the full output in a variable
+  output=${lines[@]}
+
+  # Restore $IFS
+  IFS=$oldIFS
+
+  # Restore the exit on error state
+  setopt ERR_EXIT
+}
+
+###
+# Redirect the assertion shorthand to the correct function
+###
+function assert() {
+  local value=$1 assertion=$2 comparisons=${(@)@:3}
+
+  if (( ! $+functions[_zunit_assert_${assertion}] )); then
+    echo "$(color red "Assertion $assertion does not exist")"
+  fi
+
+  "_zunit_assert_${assertion}" $value $comparisons
+
+  return $?
+}
+
+######################
+# Main zunit process #
+######################
 
 ###
 # Output usage information and exit
@@ -166,9 +379,6 @@ function _zunit_run() {
   # Start the progress indicator
   revolver start 'Loading tests'
 
-  # Source the helper functions before starting
-  # source "$base/src/helpers"
-
   # If no arguments are passed, use the current directory
   if [[ ${#arguments} -eq 0 ]]; then
     arguments=("tests")
@@ -213,9 +423,6 @@ function _zunit() {
     echo '0.1.0'
     exit 0
   fi
-
-  source "$base/assertions"
-  source "$base/helpers"
 
   _zunit_run "$@"
 }
