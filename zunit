@@ -505,7 +505,7 @@ function _zunit() {
   # If the version option is passed,
   # output version information and exit
   if [[ $version ]]; then
-    echo '0.1.0'
+    echo '0.1.1'
     exit 0
   fi
 
