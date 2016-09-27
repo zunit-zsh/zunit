@@ -343,8 +343,17 @@ _zunit_execute_test() {
     (( $+functions[__zunit_tmp_test_function] )) && \
       unfunction __zunit_tmp_test_function
 
+    func="function __zunit_tmp_test_function() {
+      setopt ERR_EXIT
+      integer state
+      local output
+      typeset -a lines
+
+      ${body}
+    }"
+
     # Quietly eval the body into a variable as a first test
-    output=$(eval "$(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT\n  integer state\n  local output\n  typeset -a lines\n${body}")" 2>&1)
+    output=$(eval "$(echo "$func")" 2>&1)
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
@@ -356,7 +365,7 @@ _zunit_execute_test() {
 
     # Run the eval again, this time within the current context so that
     # the function is registered in the current scope
-    eval "$(echo "function __zunit_tmp_test_function() {\n  setopt ERR_EXIT\n  integer state\n  local output\n  typeset -a lines\n${body}")" 2>/dev/null
+    eval "$(echo "$func")" 2>/dev/null
 
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
@@ -384,10 +393,29 @@ _zunit_execute_test() {
 }
 
 ###
+# Encode test name into a value which can be used as a hash key
+###
+function _zunit_encode_test_name() {
+  echo "$1" | tr A-Z a-z \
+            | tr _ ' ' \
+            | tr - ' ' \
+            | tr -s ' ' \
+            | sed 's/\- /-/' \
+            | sed 's/ \-/-/' \
+            | tr ' ' "-"
+}
+
+###
 # Run all tests within a file
 ###
 function _zunit_run_testfile() {
-  local testbody testname pattern testfile="$1" testdir="$(dirname "$testfile")"
+  local testbody testname pattern \
+        testfile="$1" testdir="$(dirname "$testfile")"
+
+  typeset -A tests
+
+  # Update status message
+  revolver update "Loading tests from $testfile"
 
   # A regex pattern to match test declarations
   pattern='^ *@test  *([^ ].*)  *\{ *(.*)$'
@@ -397,29 +425,22 @@ function _zunit_run_testfile() {
   for line in $lines[@]; do
     # Match current line against pattern
     if [[ "$line" =~ $pattern ]]; then
-      # If the pattern matched, we've reached the next test, so the first thing
-      # we do is execute the previous one if it exists
-      _zunit_execute_test "$testname" "$testbody"
-
-      # Now the test has been run, we can reset
-      # the testname and testbody variables
-      testbody=''
-      testname=''
-
       # Get test name from matches
       testname=${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}
+    elif [[ "$line" = '}' ]]; then
+      testname=''
     else
-      [[ -z $testname ]] || testbody+="$line\n"
+      if [[ -n $testname ]]; then
+        tests[$testname]+="$line\n"
+        continue
+      fi
     fi
   done
 
-  # Since the loop has finished, we've reached the end of the file,
-  # but the last test won't have been executed yet, so we do it here
-  [[ -z $testname ]] || _zunit_execute_test "$testname" "$testbody"
+  # Loop through each of the tests and execute it
+  for name body ("${(@kv)tests}") _zunit_execute_test "$name" "$body"
 
-  # Reset the testbody and testname variables ready for the next file
-  testbody=''
-  testname=''
+  (( $+functions[__zunit_tmp_test_function] )) && unfunction __zunit_tmp_test_function
 }
 
 ###
