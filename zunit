@@ -298,6 +298,11 @@ function run() {
 function assert() {
   local value=$1 assertion=$2 comparisons=${(@)@:3}
 
+  if [[ -z $assertion ]]; then
+    assertion=$value
+    value=""
+  fi
+
   if (( ! $+functions[_zunit_assert_${assertion}] )); then
     echo "$(color red "Assertion $assertion does not exist")"
   fi
