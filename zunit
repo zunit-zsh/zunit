@@ -272,7 +272,7 @@ function run() {
   # If the command is not an existing command or file,
   # then prepend the test directory to the path
   type $name > /dev/null
-  if [[ $? -ne 0 && ! -f $name ]]; then
+  if [[ $? -ne 0 && ! -f $name && -f "$testdir/${name}" ]]; then
     cmd[1]="$testdir/${name}"
   fi
 
