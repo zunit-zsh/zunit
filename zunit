@@ -327,6 +327,7 @@ function _zunit_usage() {
   echo "\033[0;33mOptions:\033[0;m"
   echo "  -h, --help         Output help text and exit"
   echo "  -v, --version      Output version information and exit"
+  echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
 }
 
 ###
@@ -369,6 +370,9 @@ _zunit_execute_test() {
       echo "$(color red '✘' ${name})"
       echo "    $(color red underline "Failed to parse test body")"
       echo "    $(color red $output)"
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
 
@@ -381,6 +385,9 @@ _zunit_execute_test() {
     if (( ! $+functions[__zunit_tmp_test_function] )); then
       echo "$(color red '✘' ${name})"
       echo "    $(color red underline "Failed to parse test body")"
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
 
@@ -396,6 +403,9 @@ _zunit_execute_test() {
       if [[ -n $output ]]; then
         echo "    $(color red "${output}")"
       fi
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
   fi
@@ -478,6 +488,9 @@ function _zunit_run_testfile() {
       echo "$(color red '✘' ${testfile})"
       echo "    $(color red underline "Failed to parse setup method")"
       echo "    $(color red $output)"
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
 
@@ -490,6 +503,9 @@ function _zunit_run_testfile() {
     if (( ! $+functions[__zunit_test_setup] )); then
       echo "$(color red '✘' ${testfile})"
       echo "    $(color red underline "Failed to parse setup method")"
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
   fi
@@ -507,6 +523,9 @@ function _zunit_run_testfile() {
       echo "$(color red '✘' ${testfile})"
       echo "    $(color red underline "Failed to parse teardown method")"
       echo "    $(color red $output)"
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
 
@@ -519,6 +538,9 @@ function _zunit_run_testfile() {
     if (( ! $+functions[__zunit_test_teardown] )); then
       echo "$(color red '✘' ${testfile})"
       echo "    $(color red underline "Failed to parse teardown method")"
+
+      [[ -n $fail_fast ]] && revolver stop && exit 1
+
       return 1
     fi
   fi
@@ -618,7 +640,8 @@ function _zunit() {
 
   zparseopts -D \
     h=help -help=help \
-    v=version -version=version
+    v=version -version=version \
+    f=fail_fast -fail-fast=fail_fast
 
   # If the help option is passed,
   # output usage information and exit
