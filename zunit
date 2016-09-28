@@ -469,14 +469,58 @@ function _zunit_run_testfile() {
     setupfunc="function __zunit_test_setup() {
       ${setup}
     }"
-    eval "$(echo "$setupfunc")"
+
+    # Quietly eval the body into a variable as a first test
+    output=$(eval "$(echo "$setupfunc")" 2>&1)
+
+    # Check the status of the eval, and output any errors
+    if [[ $? -ne 0 ]]; then
+      echo "$(color red '✘' ${testfile})"
+      echo "    $(color red underline "Failed to parse setup method")"
+      echo "    $(color red $output)"
+      return 1
+    fi
+
+    # Run the eval again, this time within the current context so that
+    # the function is registered in the current scope
+    eval "$(echo "$setupfunc")" 2>/dev/null
+
+    # Any errors should have been caught above, but if the function
+    # does not exist, we can't go any further
+    if (( ! $+functions[__zunit_test_setup] )); then
+      echo "$(color red '✘' ${testfile})"
+      echo "    $(color red underline "Failed to parse setup method")"
+      return 1
+    fi
   fi
 
   if [[ -n $teardown ]]; then
     teardownfunc="function __zunit_test_teardown() {
       ${teardown}
     }"
-    eval "$(echo "$teardownfunc")"
+
+    # Quietly eval the body into a variable as a first test
+    output=$(eval "$(echo "$teardownfunc")" 2>&1)
+
+    # Check the status of the eval, and output any errors
+    if [[ $? -ne 0 ]]; then
+      echo "$(color red '✘' ${testfile})"
+      echo "    $(color red underline "Failed to parse teardown method")"
+      echo "    $(color red $output)"
+      return 1
+    fi
+
+    # Run the eval again, this time within the current context so that
+    # the function is registered in the current scope
+    eval "$(echo "$teardownfunc")" 2>/dev/null
+
+    # Any errors should have been caught above, but if the function
+    # does not exist, we can't go any further
+    if (( ! $+functions[__zunit_test_teardown] )); then
+      echo "$(color red '✘' ${testfile})"
+      echo "    $(color red underline "Failed to parse teardown method")"
+      return 1
+    fi
   fi
 
   # Loop through each of the tests and execute it
