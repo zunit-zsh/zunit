@@ -210,6 +210,36 @@ You can run commands within your tests using the `run` helper, allowing you to m
 }
 ```
 
+### Setup and Teardown
+
+ZUnit provides `@setup` and `@teardown` methods, which will be run before and after each test in the file.
+
+```sh
+@setup {
+	SOME_VAR='rainbows'
+}
+
+@teardown {
+	unset SOME_VAR
+}
+
+@test 'Check value of SOME_VAR' {
+	assert $SOME_VAR same_as 'rainbows'
+}
+
+@test 'Change value of SOME_VAR' {
+	SOME_VAR='unicorns'
+	assert $SOME_VAR same_as 'unicorns'
+}
+
+@test 'Check value of SOME_VAR again' {
+	# Check will fail, because the variable was unset in
+	# the @teardown method, and then reset to 'rainbows'
+	# when @setup was run again.
+	assert $SOME_VAR same_as 'unicorns'
+}
+```
+
 ## Running Tests
 
 The CLI program `zunit` is used to run tests.
@@ -223,4 +253,7 @@ zunit other_tests
 
 # Runs all tests in the file ./tests/a-test-file
 zunit tests/a-test-file
+
+# Runs all tests, and exists immediately after the first failure
+zunit --fail-fast
 ```
