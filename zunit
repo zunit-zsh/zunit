@@ -305,6 +305,7 @@ function assert() {
 
   if (( ! $+functions[_zunit_assert_${assertion}] )); then
     echo "$(color red "Assertion $assertion does not exist")"
+    return 127
   fi
 
   "_zunit_assert_${assertion}" $value $comparisons
