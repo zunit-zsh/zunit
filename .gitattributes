@@ -1,0 +1,5 @@
+*.zunit linguist-language=shell
+.gitattributes export-ignore
+.gitignore export-ignore
+.guardian.yml export-ignore
+tests/ export-ignore
