@@ -9,5 +9,5 @@
 @test 'Test _zunit_assert_in failure' {
   run assert 'a' in 'x' 'y' 'z'
   assert $state equals 1
-  assert $output same_as "'a' is not in (x ; y ; z)"
+  assert $output same_as "'a' is not in (x y z)"
 }

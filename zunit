@@ -114,7 +114,7 @@ function _zunit_assert_in() {
 
   [[ $found -eq 1 ]] && return 0
 
-  echo "'$value' is not in (${(@z)array})"
+  echo "'$value' is not in (${(@f)array})"
   exit 1
 }
 
@@ -132,7 +132,7 @@ function _zunit_assert_not_in() {
 
   [[ $found -eq 0 ]] && return 0
 
-  echo "'$value' is in (${(@z)array})"
+  echo "'$value' is in (${(@f)array})"
   exit 1
 }
 
