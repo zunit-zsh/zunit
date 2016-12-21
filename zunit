@@ -104,7 +104,9 @@ function _zunit_assert_does_not_match() {
 # Assert that a value is found in an array
 ###
 function _zunit_assert_in() {
-  local i found=0 value=$1 array=(${(@)@:2})
+  local i found=0 value=$1
+  local -a array
+  array=(${(@)@:2})
 
   for i in ${(@f)array}; do
     [[ $i = $value ]] && found=1
@@ -120,7 +122,9 @@ function _zunit_assert_in() {
 # Assert that a value is not found in an array
 ###
 function _zunit_assert_not_in() {
-  local i found=0 value=$1 array=(${(@)@:2})
+  local i found=0 value=$1
+  local -a array
+  array=(${(@)@:2})
 
   for i in ${(@f)array}; do
     [[ $i = $value ]] && found=1
@@ -136,7 +140,7 @@ function _zunit_assert_not_in() {
 # Assert the a path exists
 ###
 function _zunit_assert_exists() {
-  local path=$1
+  local path=$1 filepath
 
   # If filepath is relative, prepend the test directory
   if [[ "${path:0:1}" != "/" ]]; then
@@ -153,7 +157,7 @@ function _zunit_assert_exists() {
 # Assert the a path exists and is a file
 ###
 function _zunit_assert_is_file() {
-  local path=$1
+  local path=$1 filepath
 
   # If filepath is relative, prepend the test directory
   if [[ "${path:0:1}" != "/" ]]; then
@@ -170,7 +174,7 @@ function _zunit_assert_is_file() {
 # Assert the a path exists and is a directory
 ###
 function _zunit_assert_is_dir() {
-  local path=$1
+  local path=$1 filepath
 
   # If filepath is relative, prepend the test directory
   if [[ "${path:0:1}" != "/" ]]; then
@@ -187,7 +191,7 @@ function _zunit_assert_is_dir() {
 # Assert the a path exists and is a symbolic link
 ###
 function _zunit_assert_is_link() {
-  local path=$1
+  local path=$1 filepath
 
   # If filepath is relative, prepend the test directory
   if [[ "${path:0:1}" != "/" ]]; then
@@ -204,7 +208,7 @@ function _zunit_assert_is_link() {
 # Assert the a path exists and is readable
 ###
 function _zunit_assert_is_readable() {
-  local path=$1
+  local path=$1 filepath
 
   # If filepath is relative, prepend the test directory
   if [[ "${path:0:1}" != "/" ]]; then
@@ -263,7 +267,8 @@ function run() {
   unsetopt ERR_EXIT
 
   # Preserve current $IFS
-  local oldIFS=$IFS cmd name
+  local oldIFS=$IFS name
+  local -a cmd lines
 
   # Grab the first argument
   cmd=(${@[@]})
@@ -336,7 +341,7 @@ function _zunit_usage() {
 _zunit_execute_test() {
   local name="$1" body="$2"
 
-  if [[ $body && $name ]]; then
+  if [[ -n $body ]] && [[ -n $name ]]; then
     # Update the progress indicator
     revolver update "${name}"
     sleep 0.1
@@ -431,7 +436,7 @@ function _zunit_run_testfile() {
   local testbody testname pattern \
         setup teardown \
         testfile="$1" testdir="$(dirname "$testfile")"
-
+  local -a lines
   typeset -A tests
 
   # Update status message
@@ -606,7 +611,9 @@ function _zunit_parse_argument() {
 # Run tests
 ###
 function _zunit_run() {
-  local arguments=("$@") testfiles=()
+  local -a arguments testfiles
+  arguments=("$@")
+  testfiles=()
 
   # Start the progress indicator
   revolver start 'Loading tests'
@@ -645,14 +652,14 @@ function _zunit() {
 
   # If the help option is passed,
   # output usage information and exit
-  if [[ $help ]]; then
+  if [[ -n $help ]]; then
     _zunit_usage
     exit 0
   fi
 
   # If the version option is passed,
   # output version information and exit
-  if [[ $version ]]; then
+  if [[ -n $version ]]; then
     echo '0.2.0'
     exit 0
   fi
