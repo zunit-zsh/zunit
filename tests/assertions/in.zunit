@@ -1,0 +1,13 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_in success' {
+  run assert 'a' in 'a' 'b' 'c'
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_in failure' {
+  run assert 'a' in 'x' 'y' 'z'
+  assert $state equals 1
+  assert $output same_as "'a' is not in (x ; y ; z)"
+}

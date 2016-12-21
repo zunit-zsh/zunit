@@ -1,0 +1,13 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_link success' {
+  run assert '../_support/assertions.zunit.link' is_link
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_is_link failure' {
+  run assert '../assertions.zunit' is_link
+  assert $state equals 1
+  assert $output same_as "'../assertions.zunit' does not exist or is not a symbolic link"
+}

@@ -1,0 +1,13 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_file success' {
+  run assert './is_file.zunit' is_file
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_is_file failure' {
+  run assert '../_support' is_file
+  assert $state equals 1
+  assert $output same_as "'../_support' does not exist or is not a file"
+}
