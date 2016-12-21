@@ -140,16 +140,16 @@ function _zunit_assert_not_in() {
 # Assert the a path exists
 ###
 function _zunit_assert_exists() {
-  local path=$1 filepath
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -e $filepath ]] && return 0
 
-  echo "'$path' does not exist"
+  echo "'$pathname' does not exist"
   exit 1
 }
 
@@ -157,16 +157,16 @@ function _zunit_assert_exists() {
 # Assert the a path exists and is a file
 ###
 function _zunit_assert_is_file() {
-  local path=$1 filepath
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -f $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not a file"
+  echo "'$pathname' does not exist or is not a file"
   exit 1
 }
 
@@ -174,16 +174,16 @@ function _zunit_assert_is_file() {
 # Assert the a path exists and is a directory
 ###
 function _zunit_assert_is_dir() {
-  local path=$1 filepath
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -d $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not a directory"
+  echo "'$pathname' does not exist or is not a directory"
   exit 1
 }
 
@@ -191,16 +191,16 @@ function _zunit_assert_is_dir() {
 # Assert the a path exists and is a symbolic link
 ###
 function _zunit_assert_is_link() {
-  local path=$1 filepath
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -h $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not a symbolic link"
+  echo "'$pathname' does not exist or is not a symbolic link"
   exit 1
 }
 
@@ -208,16 +208,16 @@ function _zunit_assert_is_link() {
 # Assert the a path exists and is readable
 ###
 function _zunit_assert_is_readable() {
-  local path=$1 filepath
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -r $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not readable"
+  echo "'$pathname' does not exist or is not readable"
   exit 1
 }
 
