@@ -310,12 +310,16 @@ function assert() {
 
   if (( ! $+functions[_zunit_assert_${assertion}] )); then
     echo "$(color red "Assertion $assertion does not exist")"
-    return 127
+    exit 127
   fi
 
   "_zunit_assert_${assertion}" $value $comparisons
 
-  return $?
+  local status=$?
+
+  if [[ $status -ne 0 ]]; then
+    exit $status
+  fi
 }
 
 ######################
@@ -336,6 +340,46 @@ function _zunit_usage() {
 }
 
 ###
+# Output a TAP compatible success message
+###
+_zunit_tap_success() {
+  echo "ok ${total} - ${name}"
+}
+
+_zunit_success() {
+  if [[ -n $tap ]]; then
+    _zunit_tap_success "$@"
+    return
+  fi
+
+  echo "$(color green '✔') ${name}"
+}
+
+_zunit_tap_failure() {
+  local message="$@"
+
+  echo "not ok ${total} - ${name}"
+  echo "    ${message}"
+
+  [[ -n $fail_fast ]] && echo "Bail out!" && exit 1
+}
+
+_zunit_failure() {
+  local message="$1" output="${(@)@:2}"
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_failure "$@"
+    return
+  fi
+
+  echo "$(color red '✘' ${name})"
+  echo "    $(color red underline ${message})"
+  echo "    $(color red ${output})"
+
+  [[ -n $fail_fast ]] && revolver stop && exit 1
+}
+
+###
 # Execute a test and store the result
 ###
 _zunit_execute_test() {
@@ -343,7 +387,7 @@ _zunit_execute_test() {
 
   if [[ -n $body ]] && [[ -n $name ]]; then
     # Update the progress indicator
-    revolver update "${name}"
+    [[ -z $tap ]] && revolver update "${name}"
     sleep 0.1
 
     # Make sure we don't already have a function defined
@@ -370,13 +414,11 @@ _zunit_execute_test() {
     # Quietly eval the body into a variable as a first test
     output=$(eval "$(echo "$func")" 2>&1)
 
+    total=$(( total + 1 ))
+
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      echo "$(color red '✘' ${name})"
-      echo "    $(color red underline "Failed to parse test body")"
-      echo "    $(color red $output)"
-
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      _zunit_failure 'Failed to parse test body' $output
 
       return 1
     fi
@@ -388,10 +430,7 @@ _zunit_execute_test() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_tmp_test_function] )); then
-      echo "$(color red '✘' ${name})"
-      echo "    $(color red underline "Failed to parse test body")"
-
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      _zunit_failure 'Failed to parse test body'
 
       return 1
     fi
@@ -401,15 +440,13 @@ _zunit_execute_test() {
 
     # Output the result to the user
     if [[ $? -eq 0 ]]; then
-      echo "$(color green '✔') ${name}"
-      return 0
-    else
-      echo "$(color red '✘' ${name})"
-      if [[ -n $output ]]; then
-        echo "    $(color red "${output}")"
-      fi
+      passed=$(( passed + 1 ))
+      _zunit_success
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      return
+    else
+      failed=$(( failed + 1 ))
+      _zunit_failure $output
 
       return 1
     fi
@@ -440,7 +477,7 @@ function _zunit_run_testfile() {
   typeset -A tests
 
   # Update status message
-  revolver update "Loading tests from $testfile"
+  [[ -z $tap ]] && revolver update "Loading tests from $testfile"
 
   # A regex pattern to match test declarations
   pattern='^ *@test  *([^ ].*)  *\{ *(.*)$'
@@ -490,11 +527,7 @@ function _zunit_run_testfile() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse setup method")"
-      echo "    $(color red $output)"
-
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      _zunit_failure "Failed to parse setup method" $output
 
       return 1
     fi
@@ -506,10 +539,7 @@ function _zunit_run_testfile() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_test_setup] )); then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse setup method")"
-
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      _zunit_failure "Failed to parse setup method"
 
       return 1
     fi
@@ -525,11 +555,7 @@ function _zunit_run_testfile() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse teardown method")"
-      echo "    $(color red $output)"
-
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      _zunit_failure "Failed to parse teardown method" $output
 
       return 1
     fi
@@ -541,10 +567,7 @@ function _zunit_run_testfile() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_test_teardown] )); then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse teardown method")"
-
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      _zunit_failure "Failed to parse teardown method"
 
       return 1
     fi
@@ -616,7 +639,7 @@ function _zunit_run() {
   testfiles=()
 
   # Start the progress indicator
-  revolver start 'Loading tests'
+  [[ -z $tap ]] && revolver start 'Loading tests'
 
   # If no arguments are passed, use the current directory
   if [[ ${#arguments} -eq 0 ]]; then
@@ -632,11 +655,15 @@ function _zunit_run() {
 
   # Loop through each of the test files and run them
   local line
+  local total=0 passed=0 failed=0
   for testfile in $testfiles; do
     _zunit_run_testfile $testfile
   done
 
-  revolver stop
+  [[ -n $tap ]] && echo "1..$total"
+  [[ -z $tap ]] && revolver stop
+
+  [[ $passed -eq $total ]]
 }
 
 ###
@@ -648,7 +675,8 @@ function _zunit() {
   zparseopts -D \
     h=help -help=help \
     v=version -version=version \
-    f=fail_fast -fail-fast=fail_fast
+    f=fail_fast -fail-fast=fail_fast \
+    t=tap -tap=tap
 
   # If the help option is passed,
   # output usage information and exit
