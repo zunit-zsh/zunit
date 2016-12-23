@@ -716,7 +716,21 @@ function _zunit_run() {
 # The main zunit process
 ###
 function _zunit() {
-  local help version ctx="$1"
+  local help version ctx="$1" missing_dependencies=0
+
+  $(type color >/dev/null 2>&1)
+  if [[ $? -ne 0 ]]; then
+    missing_dependencies=$(( missing_dependencies + 1 ))
+    echo "\033[0;31mMissing required dependency: Color - https://github.com/molovo/color\033[0;m"
+  fi
+
+  $(type revolver >/dev/null 2>&1)
+  if [[ $? -ne 0 ]]; then
+    missing_dependencies=$(( missing_dependencies + 1 ))
+    echo "\033[0;31mMissing required dependency: Revolver - https://github.com/molovo/revolver\033[0;m"
+  fi
+
+  [[ $missing_dependencies -gt 0 ]] && exit 1
 
   zparseopts -D \
     h=help -help=help \
