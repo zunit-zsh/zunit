@@ -330,13 +330,14 @@ function assert() {
 # Output usage information and exit
 ###
 function _zunit_usage() {
-  echo "\033[0;33mUsage:\033[0;m"
+  echo "$(color yellow 'Usage:')"
   echo "  zunit [options] <tests...>"
   echo
-  echo "\033[0;33mOptions:\033[0;m"
+  echo "$(color yellow 'Options:')"
   echo "  -h, --help         Output help text and exit"
   echo "  -v, --version      Output version information and exit"
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
+  echo "  -t, --tap          Output results in a TAP compatible format"
 }
 
 ###
