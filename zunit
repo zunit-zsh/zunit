@@ -664,6 +664,15 @@ directories:
   output: tests/_output
   support: tests/_support"
 
+  local example="#!/usr/bin/env zunit
+
+@test 'Example' {
+  run echo 1
+
+  assert "'"$state"'" equals 1
+  assert "'"$output"'" same_as "'"incorrect"'"
+}"
+
   if [[ -f "$PWD/.zunit.yml" ]]; then
     echo $(color red 'Zunit config file already exists at $PWD/.zunit.yml') >&2
     exit 1
@@ -677,6 +686,8 @@ directories:
   else
     mkdir -p tests/_{output,support}
     touch tests/_{output,support}/.gitkeep
+
+    echo "$example" > "$PWD/tests/example.zunit"
   fi
 }
 
