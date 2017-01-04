@@ -1,5 +1,10 @@
 #compdef zunit
 
+_zunit_commands=(
+  'run:Run tests'
+  'init:Bootstrap ZUnit in a new project'
+)
+
 _zunit() {
   typeset -A opt_args
   local context state line curcontext="$curcontext"
@@ -11,7 +16,34 @@ _zunit() {
     '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]'
 
   _arguments \
-    '*:test:_files'
+    '1: :_zunit_cmds' \
+    '*::arg:->args'
+
+  case "$state" in
+    args )
+      case "$words[1]" in
+        init )
+          _arguments -A \
+            '(-h --help)'{-h,--help}'[show help text and exit]' \
+            '(-v --version)'{-v,--version}'[show version information and exit]'
+          ;;
+        run )
+          _arguments -A \
+            '(-h --help)'{-h,--help}'[show help text and exit]' \
+            '(-v --version)'{-v,--version}'[show version information and exit]' \
+            '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
+            '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]'
+
+          _arguments \
+            '*:tests:_files'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+(( $+functions[_zunit_cmds] )) || _zunit_cmds() {
+  _describe -t commands 'commands' _zunit_commands "$@"
 }
 
 _zunit "$@"
