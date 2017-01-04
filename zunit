@@ -331,7 +331,11 @@ function assert() {
 ###
 function _zunit_usage() {
   echo "$(color yellow 'Usage:')"
-  echo "  zunit [options] <tests...>"
+  echo "  zunit [options] [command] [tests...]"
+  echo
+  echo "$(color yellow 'Commands:')"
+  echo "  init               Bootstrap zunit in a new project"
+  echo "  run [tests...]        Run tests"
   echo
   echo "$(color yellow 'Options:')"
   echo "  -h, --help         Output help text and exit"
@@ -698,11 +702,45 @@ _zunit_parse_yaml() {
   }' | sed 's/_=/+=/g'
 }
 
+function _zunit_init() {
+  local yaml="tap: false
+directories:
+  tests: tests
+  output: tests/_output
+  support: tests/_support"
+
+  if [[ -f "$PWD/.zunit.yml" ]]; then
+    echo $(color red 'Zunit config file already exists at $PWD/.zunit.yml') >&2
+    exit 1
+  else
+    echo "$yaml" > "$PWD/.zunit.yml"
+  fi
+
+  if [[ -d "$PWD/tests" ]]; then
+    echo $(color red 'Directory already exists at $PWD/tests') >&2
+    exit 1
+  else
+    mkdir -p tests/_{output,support}
+    touch tests/_{output,support}/.gitkeep
+  fi
+}
+
 ###
 # Run tests
 ###
 function _zunit_run() {
   local -a arguments testfiles
+
+  zparseopts -D -E \
+    h=help -help=help \
+    v=version -version=version \
+    f=fail_fast -fail-fast=fail_fast \
+    t=tap -tap=tap
+
+  if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
+    tap=1
+  fi
+
   arguments=("$@")
   testfiles=()
 
@@ -772,11 +810,9 @@ function _zunit() {
 
   [[ $missing_dependencies -gt 0 ]] && exit 1
 
-  zparseopts -D \
+  zparseopts -D -E \
     h=help -help=help \
-    v=version -version=version \
-    f=fail_fast -fail-fast=fail_fast \
-    t=tap -tap=tap
+    v=version -version=version
 
   # If the help option is passed,
   # output usage information and exit
@@ -792,11 +828,17 @@ function _zunit() {
     exit 0
   fi
 
-  if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
-    tap=1
-  fi
-
-  _zunit_run "$@"
+  case "$ctx" in
+    init )
+      _zunit_init "${(@)@:2}"
+      ;;
+    run )
+      _zunit_run "${(@)@:2}"
+      ;;
+    * )
+      _zunit_run "$@"
+      ;;
+  esac
 }
 
 _zunit "$@"
