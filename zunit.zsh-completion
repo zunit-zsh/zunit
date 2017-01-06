@@ -13,7 +13,8 @@ _zunit() {
     '(-h --help)'{-h,--help}'[show help text and exit]' \
     '(-v --version)'{-v,--version}'[show version information and exit]' \
     '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
-    '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]'
+    '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
+    '--output-text[Print results to a text log, in TAP compatible format]'
 
   _arguments \
     '1: :_zunit_cmds' \
@@ -32,7 +33,8 @@ _zunit() {
             '(-h --help)'{-h,--help}'[show help text and exit]' \
             '(-v --version)'{-v,--version}'[show version information and exit]' \
             '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
-            '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]'
+            '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
+            '--output-text[Print results to a text log, in TAP compatible format]'
 
           _arguments \
             '*:tests:_files'
