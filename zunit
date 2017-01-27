@@ -356,6 +356,7 @@ function _zunit_run_usage() {
   echo "  -v, --version      Output version information and exit"
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
+  echo "      --output-text  Print results to a text log, in TAP compatible format"
 }
 
 ###
@@ -381,6 +382,8 @@ _zunit_tap_success() {
 # Output a success message
 ###
 _zunit_success() {
+  [[ -n $output_text ]] && _zunit_tap_success "$@" >> $logfile_text
+
   if [[ -n $tap ]]; then
     _zunit_tap_success "$@"
     return
@@ -409,6 +412,8 @@ _zunit_tap_failure() {
 ###
 _zunit_failure() {
   local message="$1" output="${(@)@:2}"
+
+  [[ -n $output_text ]] && _zunit_tap_failure "$@" >> $logfile_text
 
   if [[ -n $tap ]]; then
     _zunit_tap_failure "$@"
@@ -442,6 +447,8 @@ _zunit_tap_error() {
 ###
 _zunit_error() {
   local message="$1" output="${(@)@:2}"
+
+  [[ -n $output_text ]] && _zunit_tap_error "$@" >> $logfile_text
 
   if [[ -n $tap ]]; then
     _zunit_tap_error "$@"
@@ -763,16 +770,33 @@ directories:
 # Run tests
 ###
 function _zunit_run() {
-  local -a arguments testfiles
+  local -a arguments testfiles fail_fast tap output_text
 
   zparseopts -D -E \
     h=help -help=help \
     v=version -version=version \
     f=fail_fast -fail-fast=fail_fast \
-    t=tap -tap=tap
+    t=tap -tap=tap \
+    -output-text=output_text
 
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
     tap=1
+    echo 'TAP version 13'
+  fi
+
+  if [[ -n $output_text ]]; then
+    if [[ $missing_config -eq 1 ]]; then
+      echo $(color red '.zunit.yml could not be found. Run `zulu init`')
+      exit 1
+    fi
+
+    if [[ -z $zunit_config_directories_output ]]; then
+      echo $(color red 'Output directory must be specified in .zunit.yml')
+      exit 1
+    fi
+
+    logfile_text="$zunit_config_directories_output/output.txt"
+    echo 'TAP version 13' >! $logfile_text
   fi
 
   arguments=("$@")
@@ -814,7 +838,7 @@ function _zunit_run() {
 # The main zunit process
 ###
 function _zunit() {
-  local help version ctx="$1" missing_dependencies=0
+  local help version ctx="$1" missing_dependencies=0 missing_config=1
 
   if [[ -f .zunit.yml ]]; then
     # Try and parse the config file within a subprocess,
@@ -824,6 +848,7 @@ function _zunit() {
       # Perform the parse again, in context, so that the
       # config vars are loaded into the enviroment
       eval $(_zunit_parse_yaml .zunit.yml 'zunit_config_') >/dev/null 2>&1
+      missing_config=0
     else
       echo "\033[0;31mFailed to parse config file\033[0;m" >&2
       exit 1
