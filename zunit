@@ -358,6 +358,8 @@ function _zunit_usage() {
   echo "  -v, --version      Output version information and exit"
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
+  echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --allow-risky  Supress warnings generated for risky tests"
 }
 
 ###
@@ -373,6 +375,7 @@ function _zunit_run_usage() {
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
   echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --allow-risky  Supress warnings generated for risky tests"
 }
 
 ###
@@ -607,12 +610,12 @@ _zunit_execute_test() {
       _zunit_skip $output
 
       return
-    elif [[ $state -eq 248 ]]; then
+    elif [[ -z $allow_risky && $state -eq 248 ]]; then
       passed=$(( passed + 1 ))
       _zunit_warn 'No assertions were run, test is risky'
 
       return
-    elif [[ $state -eq 0 ]]; then
+    elif [[ -n $allow_risky && $state -eq 248 ]] || [[ $state -eq 0 ]]; then
       passed=$(( passed + 1 ))
       _zunit_success
 
@@ -860,14 +863,15 @@ directories:
 # Run tests
 ###
 function _zunit_run() {
-  local -a arguments testfiles fail_fast tap output_text
+  local -a arguments testfiles fail_fast tap output_text allow_risky
 
   zparseopts -D -E \
     h=help -help=help \
     v=version -version=version \
     f=fail_fast -fail-fast=fail_fast \
     t=tap -tap=tap \
-    -output-text=output_text
+    -output-text=output_text \
+    -allow-risky=allow_risky
 
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
     tap=1
