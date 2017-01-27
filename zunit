@@ -403,6 +403,8 @@ _zunit_tap_success() {
 _zunit_success() {
   [[ -n $output_text ]] && _zunit_tap_success "$@" >> $logfile_text
 
+  passed=$(( passed + 1 ))
+
   if [[ -n $tap ]]; then
     _zunit_tap_success "$@"
     return
@@ -431,6 +433,8 @@ _zunit_tap_failure() {
 ###
 _zunit_failure() {
   local message="$1" output="${(@)@:2}"
+
+  failed=$(( failed + 1 ))
 
   [[ -n $output_text ]] && _zunit_tap_failure "$@" >> $logfile_text
 
@@ -467,6 +471,8 @@ _zunit_tap_error() {
 _zunit_error() {
   local message="$1" output="${(@)@:2}"
 
+  errors=$(( errors + 1 ))
+
   [[ -n $output_text ]] && _zunit_tap_error "$@" >> $logfile_text
 
   if [[ -n $tap ]]; then
@@ -500,6 +506,9 @@ _zunit_tap_warn() {
 _zunit_warn() {
   local message="$@"
 
+  warnings=$(( warnings + 1 ))
+  passed=$(( passed + 1 ))
+
   [[ -n $output_text ]] && _zunit_tap_warn "$@" >> $logfile_text
 
   if [[ -n $tap ]]; then
@@ -530,6 +539,8 @@ _zunit_tap_skip() {
 _zunit_skip() {
   local message="$@"
 
+  skipped=$(( skipped + 1 ))
+
   [[ -n $output_text ]] && _zunit_tap_skip "$@" >> $logfile_text
 
   if [[ -n $tap ]]; then
@@ -539,6 +550,40 @@ _zunit_skip() {
 
   echo "$(color magenta '•') Skipped: ${name}"
   echo "  $(color gray "# ${message}")"
+}
+
+###
+# Format a ms timestamp in a human-readable format
+###
+_zunit_human_time() {
+  local ms=$1
+  local tmp=$(( $1 / 1000 ))
+  local days=$(( tmp / 60 / 60 / 24 ))
+  local hours=$(( tmp / 60 / 60 % 24 ))
+  local minutes=$(( tmp / 60 % 60 ))
+  local seconds=$(( tmp % 60 ))
+  (( $days > 0 )) && print -n "${days}d "
+  (( $hours > 0 )) && print -n "${hours}h "
+  (( $minutes > 0 )) && print -n "${minutes}m "
+  (( $seconds > 5 )) && print -n "${seconds}s "
+  (( $seconds < 30 )) && print -n "$(( ms - $((seconds*1000)) ))ms"
+  (( $tmp <= 5 )) && print -n "${1}ms"
+}
+
+###
+# Output test results
+###
+_zunit_output_results() {
+  integer elapsed=$(( end_time - start_time ))
+  echo
+  echo "$total tests run in $(_zunit_human_time $elapsed)"
+  echo
+  echo "$(color yellow underline 'Results')                        "
+  echo "$(color green '✔') Passed      $passed                    "
+  echo "$(color red '✘') Failed      $failed                      "
+  echo "$(color red '‼') Errors      $errors                      "
+  echo "$(color magenta '•') Skipped     $skipped                 "
+  echo "$(color yellow '‼') Warnings    $warnings                 "
 }
 
 ###
@@ -606,22 +651,18 @@ _zunit_execute_test() {
     # Output the result to the user
     state=$?
     if [[ $state -eq 48 ]]; then
-      skipped=$(( skipped + 1 ))
       _zunit_skip $output
 
       return
     elif [[ -z $allow_risky && $state -eq 248 ]]; then
-      passed=$(( passed + 1 ))
       _zunit_warn 'No assertions were run, test is risky'
 
       return
     elif [[ -n $allow_risky && $state -eq 248 ]] || [[ $state -eq 0 ]]; then
-      passed=$(( passed + 1 ))
       _zunit_success
 
       return
     else
-      failed=$(( failed + 1 ))
       _zunit_failure $output
 
       return 1
@@ -865,6 +906,9 @@ directories:
 function _zunit_run() {
   local -a arguments testfiles fail_fast tap output_text allow_risky
 
+  zmodload zsh/datetime
+  local start_time=$((EPOCHREALTIME*1000)) end_time
+
   zparseopts -D -E \
     h=help -help=help \
     v=version -version=version \
@@ -917,13 +961,16 @@ function _zunit_run() {
 
   # Loop through each of the test files and run them
   local line
-  local total=0 passed=0 failed=0
+  local total=0 passed=0 failed=0 errors=0 warnings=0 skipped=0
   for testfile in $testfiles; do
     _zunit_run_testfile $testfile
   done
 
   [[ -n $tap ]] && echo "1..$total"
-  [[ -z $tap ]] && revolver stop
+
+  end_time=$((EPOCHREALTIME*1000))
+
+  [[ -z $tap ]] && _zunit_output_results && revolver stop
 
   [[ $passed -eq $total ]]
 }
