@@ -566,7 +566,7 @@ _zunit_human_time() {
   (( $hours > 0 )) && print -n "${hours}h "
   (( $minutes > 0 )) && print -n "${minutes}m "
   (( $seconds > 5 )) && print -n "${seconds}s "
-  (( $seconds < 30 )) && print -n "$(( ms - $((seconds*1000)) ))ms"
+  (( $seconds < 30 )) && (( $seconds > 5 )) && print -n "$(( ms - $((seconds*1000)) ))ms"
   (( $tmp <= 5 )) && print -n "${1}ms"
 }
 
