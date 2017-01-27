@@ -301,7 +301,9 @@ function run() {
 # Redirect the assertion shorthand to the correct function
 ###
 function assert() {
-  local value=$1 assertion=$2 comparisons=${(@)@:3}
+  local value=$1 assertion=$2
+  local -a comparisons
+  comparisons=(${(@)@:3})
 
   if [[ -z $assertion ]]; then
     assertion=$value
@@ -315,7 +317,7 @@ function assert() {
 
   "_zunit_assert_${assertion}" $value $comparisons
 
-  local status=$?
+  "_zunit_assert_${assertion}" $value ${(@f)comparisons[@]}
 
   if [[ $status -ne 0 ]]; then
     exit $status
