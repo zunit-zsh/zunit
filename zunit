@@ -1017,7 +1017,7 @@ function _zunit() {
   # If the version option is passed,
   # output version information and exit
   if [[ -n $version ]]; then
-    echo '0.2.0'
+    echo '0.3.0'
     exit 0
   fi
 
