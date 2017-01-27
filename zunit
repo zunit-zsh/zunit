@@ -301,7 +301,9 @@ function run() {
 # Redirect the assertion shorthand to the correct function
 ###
 function assert() {
-  local value=$1 assertion=$2 comparisons=${(@)@:3}
+  local value=$1 assertion=$2
+  local -a comparisons
+  comparisons=(${(@)@:3})
 
   if [[ -z $assertion ]]; then
     assertion=$value
@@ -313,12 +315,14 @@ function assert() {
     exit 127
   fi
 
-  "_zunit_assert_${assertion}" $value $comparisons
+  _zunit_assertion_count=$(( _zunit_assertion_count + 1 ))
 
-  local status=$?
+  "_zunit_assert_${assertion}" $value ${(@f)comparisons[@]}
 
-  if [[ $status -ne 0 ]]; then
-    exit $status
+  local state=$?
+
+  if [[ $state -ne 0 ]]; then
+    exit $state
   fi
 }
 
@@ -354,6 +358,8 @@ function _zunit_usage() {
   echo "  -v, --version      Output version information and exit"
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
+  echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --allow-risky  Supress warnings generated for risky tests"
 }
 
 ###
@@ -369,6 +375,7 @@ function _zunit_run_usage() {
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
   echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --allow-risky  Supress warnings generated for risky tests"
 }
 
 ###
@@ -467,11 +474,41 @@ _zunit_error() {
     return
   fi
 
-  echo "$(color yellow '‼' ${name})"
+  echo "$(color red '‼' ${name})"
   echo "  $(color red underline ${message})"
   echo "  $(color red ${output})"
 
   [[ -n $fail_fast ]] && revolver stop && exit 1
+}
+
+###
+# Output a TAP compatible warning message
+###
+_zunit_tap_warn() {
+  local message="$@"
+
+  echo "ok ${total} - Warning: ${name}"
+  echo "  ---"
+  echo "  message: ${message}"
+  echo "  severity: comment"
+  echo "  ..."
+}
+
+###
+# Output a warning message
+###
+_zunit_warn() {
+  local message="$@"
+
+  [[ -n $output_text ]] && _zunit_tap_warn "$@" >> $logfile_text
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_warn "$@"
+    return
+  fi
+
+  echo "$(color yellow '‼') ${name}"
+  echo "  $(color yellow underline ${message})"
 }
 
 ###
@@ -522,18 +559,21 @@ _zunit_execute_test() {
     func="function __zunit_tmp_test_function() {
       setopt ERR_EXIT
       integer state
+      integer _zunit_assertion_count=0
       local output
       typeset -a lines
 
       if (( $+functions[__zunit_test_setup] )); then
-        __zunit_test_setup
+        __zunit_test_setup >/dev/null 2>&1
       fi
 
       ${body}
 
       if (( $+functions[__zunit_test_teardown] )); then
-        __zunit_test_teardown
+        __zunit_test_teardown >/dev/null 2>&1
       fi
+
+      [[ \$_zunit_assertion_count -gt 0 ]] || return 248
     }"
 
     # Quietly eval the body into a variable as a first test
@@ -543,7 +583,7 @@ _zunit_execute_test() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      _zunit_failure 'Failed to parse test body' $output
+      _zunit_error 'Failed to parse test body' $output
 
       return 126
     fi
@@ -555,7 +595,7 @@ _zunit_execute_test() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_tmp_test_function] )); then
-      _zunit_failure 'Failed to parse test body'
+      _zunit_error 'Failed to parse test body'
 
       return 126
     fi
@@ -570,7 +610,12 @@ _zunit_execute_test() {
       _zunit_skip $output
 
       return
-    elif [[ $state -eq 0 ]]; then
+    elif [[ -z $allow_risky && $state -eq 248 ]]; then
+      passed=$(( passed + 1 ))
+      _zunit_warn 'No assertions were run, test is risky'
+
+      return
+    elif [[ -n $allow_risky && $state -eq 248 ]] || [[ $state -eq 0 ]]; then
       passed=$(( passed + 1 ))
       _zunit_success
 
@@ -658,7 +703,7 @@ function _zunit_run_testfile() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      _zunit_failure "Failed to parse setup method" $output
+      _zunit_error "Failed to parse setup method" $output
 
       return 126
     fi
@@ -670,7 +715,7 @@ function _zunit_run_testfile() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_test_setup] )); then
-      _zunit_failure "Failed to parse setup method"
+      _zunit_error "Failed to parse setup method"
 
       return 126
     fi
@@ -686,7 +731,7 @@ function _zunit_run_testfile() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      _zunit_failure "Failed to parse teardown method" $output
+      _zunit_error "Failed to parse teardown method" $output
 
       return 126
     fi
@@ -698,7 +743,7 @@ function _zunit_run_testfile() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_test_teardown] )); then
-      _zunit_failure "Failed to parse teardown method"
+      _zunit_error "Failed to parse teardown method"
 
       return 126
     fi
@@ -818,14 +863,15 @@ directories:
 # Run tests
 ###
 function _zunit_run() {
-  local -a arguments testfiles fail_fast tap output_text
+  local -a arguments testfiles fail_fast tap output_text allow_risky
 
   zparseopts -D -E \
     h=help -help=help \
     v=version -version=version \
     f=fail_fast -fail-fast=fail_fast \
     t=tap -tap=tap \
-    -output-text=output_text
+    -output-text=output_text \
+    -allow-risky=allow_risky
 
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
     tap=1
