@@ -322,6 +322,18 @@ function assert() {
   fi
 }
 
+###
+# Mark the current test as skipped
+###
+function skip() {
+  # Exit code 48 will skip the test, so all we have to do
+  # to mark the test as skipped is exit.
+  # The reason for skipping is echoed to stdout first, so that
+  # it can be picked up by the error handler
+  echo "$@"
+  exit 48
+}
+
 ######################
 # Main zunit process #
 ######################
@@ -463,6 +475,36 @@ _zunit_error() {
 }
 
 ###
+# Output a TAP compatible skipped test message
+###
+_zunit_tap_skip() {
+  local message="$@"
+
+  echo "ok ${total} - # SKIP ${name}"
+  echo "  ---"
+  echo "  message: ${message}"
+  echo "  severity: comment"
+  echo "  ..."
+}
+
+###
+# Output a skipped test message
+###
+_zunit_skip() {
+  local message="$@"
+
+  [[ -n $output_text ]] && _zunit_tap_skip "$@" >> $logfile_text
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_skip "$@"
+    return
+  fi
+
+  echo "$(color magenta '•') Skipped: ${name}"
+  echo "  $(color gray "# ${message}")"
+}
+
+###
 # Execute a test and store the result
 ###
 _zunit_execute_test() {
@@ -503,7 +545,7 @@ _zunit_execute_test() {
     if [[ $? -ne 0 ]]; then
       _zunit_failure 'Failed to parse test body' $output
 
-      return 1
+      return 126
     fi
 
     # Run the eval again, this time within the current context so that
@@ -515,14 +557,20 @@ _zunit_execute_test() {
     if (( ! $+functions[__zunit_tmp_test_function] )); then
       _zunit_failure 'Failed to parse test body'
 
-      return 1
+      return 126
     fi
 
     # Execute the test body, and capture its output
     output="$(__zunit_tmp_test_function 2>&1)"
 
     # Output the result to the user
-    if [[ $? -eq 0 ]]; then
+    state=$?
+    if [[ $state -eq 48 ]]; then
+      skipped=$(( skipped + 1 ))
+      _zunit_skip $output
+
+      return
+    elif [[ $state -eq 0 ]]; then
       passed=$(( passed + 1 ))
       _zunit_success
 
@@ -612,7 +660,7 @@ function _zunit_run_testfile() {
     if [[ $? -ne 0 ]]; then
       _zunit_failure "Failed to parse setup method" $output
 
-      return 1
+      return 126
     fi
 
     # Run the eval again, this time within the current context so that
@@ -624,7 +672,7 @@ function _zunit_run_testfile() {
     if (( ! $+functions[__zunit_test_setup] )); then
       _zunit_failure "Failed to parse setup method"
 
-      return 1
+      return 126
     fi
   fi
 
@@ -640,7 +688,7 @@ function _zunit_run_testfile() {
     if [[ $? -ne 0 ]]; then
       _zunit_failure "Failed to parse teardown method" $output
 
-      return 1
+      return 126
     fi
 
     # Run the eval again, this time within the current context so that
@@ -652,7 +700,7 @@ function _zunit_run_testfile() {
     if (( ! $+functions[__zunit_test_teardown] )); then
       _zunit_failure "Failed to parse teardown method"
 
-      return 1
+      return 126
     fi
   fi
 
@@ -705,12 +753,12 @@ function _zunit_parse_argument() {
     echo $(color red "File '$argument' is not a valid zunit test file") >&2
     echo "Test files must contain the following shebang on the first line" >&2
     echo "  #!/usr/bin/env zunit" >&2
-    exit 1
+    exit 126
   fi
 
   # The file could not be found, so we throw a fatal error
   echo $(color red "Test file or directory '$argument' could not be found") >&2
-  exit 1
+  exit 126
 }
 
 ###
