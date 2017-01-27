@@ -1,0 +1,10 @@
+dist: trusty
+sudo: required
+before_script:
+- sudo apt-get install zsh
+- mkdir .bin
+- sudo curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
+- sudo curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
+- chmod u+x .bin/{color,revolver}
+- export PATH="$PWD/.bin:$PATH"
+script: ./zunit
