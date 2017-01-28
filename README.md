@@ -240,6 +240,20 @@ ZUnit provides `@setup` and `@teardown` methods, which will be run before and af
 }
 ```
 
+## Configuration
+
+ZUnit is configured using a `.zunit.yml` file in the base of your project. The default configuration is as follows:
+
+```yaml
+tap: false
+directories:
+  tests: tests
+  output: tests/_output
+  support: tests/_support
+```
+
+To set up ZUnit for a new project, just run `zunit init` in the project's root directory. This will create the `.zunit.yml` config file and relevant directories, including an example test.
+
 ## Running Tests
 
 The CLI program `zunit` is used to run tests.
@@ -257,3 +271,37 @@ zunit tests/a-test-file
 # Runs all tests, and exists immediately after the first failure
 zunit --fail-fast
 ```
+
+### TAP Compatibility
+
+ZUnit is capable of producing [TAP](http://testanything.org) compatible output, either printed to the screen or to an output log, based on options provided.
+
+```sh
+# Prints TAP compatible output to the screen
+zunit --tap
+
+# Prints TAP compatible output to the _output directory
+zunit --output-text
+```
+
+### Risky Tests
+
+By default, risky tests (those that make no assertions) raise a warning in the test output. To supress this behaviour, and allow risky tests to pass without warning, use the `--allow-risky` option.
+
+```sh
+zunit --allow-risky
+```
+
+## Contributing
+
+All contributions are welcome, and encouraged. Please read our [contribution guidelines](contributing.md) and [code of conduct](code-of-conduct.md) for more information.
+
+## License
+
+Copyright (c) 2016 James Dinsdale <hi@molovo.co> (molovo.co)
+
+ZUnit is licensed under The MIT License (MIT)
+
+## Team
+
+* [James Dinsdale](http://molovo.co)

@@ -104,7 +104,9 @@ function _zunit_assert_does_not_match() {
 # Assert that a value is found in an array
 ###
 function _zunit_assert_in() {
-  local i found=0 value=$1 array=(${(@)@:2})
+  local i found=0 value=$1
+  local -a array
+  array=(${(@)@:2})
 
   for i in ${(@f)array}; do
     [[ $i = $value ]] && found=1
@@ -112,7 +114,7 @@ function _zunit_assert_in() {
 
   [[ $found -eq 1 ]] && return 0
 
-  echo "'$value' is not in (${(@z)array})"
+  echo "'$value' is not in (${(@f)array})"
   exit 1
 }
 
@@ -120,7 +122,9 @@ function _zunit_assert_in() {
 # Assert that a value is not found in an array
 ###
 function _zunit_assert_not_in() {
-  local i found=0 value=$1 array=(${(@)@:2})
+  local i found=0 value=$1
+  local -a array
+  array=(${(@)@:2})
 
   for i in ${(@f)array}; do
     [[ $i = $value ]] && found=1
@@ -128,7 +132,7 @@ function _zunit_assert_not_in() {
 
   [[ $found -eq 0 ]] && return 0
 
-  echo "'$value' is in (${(@z)array})"
+  echo "'$value' is in (${(@f)array})"
   exit 1
 }
 
@@ -136,16 +140,16 @@ function _zunit_assert_not_in() {
 # Assert the a path exists
 ###
 function _zunit_assert_exists() {
-  local path=$1
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -e $filepath ]] && return 0
 
-  echo "'$path' does not exist"
+  echo "'$pathname' does not exist"
   exit 1
 }
 
@@ -153,16 +157,16 @@ function _zunit_assert_exists() {
 # Assert the a path exists and is a file
 ###
 function _zunit_assert_is_file() {
-  local path=$1
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -f $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not a file"
+  echo "'$pathname' does not exist or is not a file"
   exit 1
 }
 
@@ -170,16 +174,16 @@ function _zunit_assert_is_file() {
 # Assert the a path exists and is a directory
 ###
 function _zunit_assert_is_dir() {
-  local path=$1
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -d $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not a directory"
+  echo "'$pathname' does not exist or is not a directory"
   exit 1
 }
 
@@ -187,16 +191,16 @@ function _zunit_assert_is_dir() {
 # Assert the a path exists and is a symbolic link
 ###
 function _zunit_assert_is_link() {
-  local path=$1
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -h $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not a symbolic link"
+  echo "'$pathname' does not exist or is not a symbolic link"
   exit 1
 }
 
@@ -204,16 +208,16 @@ function _zunit_assert_is_link() {
 # Assert the a path exists and is readable
 ###
 function _zunit_assert_is_readable() {
-  local path=$1
+  local pathname=$1 filepath
 
   # If filepath is relative, prepend the test directory
-  if [[ "${path:0:1}" != "/" ]]; then
-    filepath="$testdir/${path}"
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
   fi
 
   [[ -r $filepath ]] && return 0
 
-  echo "'$path' does not exist or is not readable"
+  echo "'$pathname' does not exist or is not readable"
   exit 1
 }
 
@@ -263,7 +267,8 @@ function run() {
   unsetopt ERR_EXIT
 
   # Preserve current $IFS
-  local oldIFS=$IFS cmd name
+  local oldIFS=$IFS name
+  local -a cmd lines
 
   # Grab the first argument
   cmd=(${@[@]})
@@ -296,7 +301,9 @@ function run() {
 # Redirect the assertion shorthand to the correct function
 ###
 function assert() {
-  local value=$1 assertion=$2 comparisons=${(@)@:3}
+  local value=$1 assertion=$2
+  local -a comparisons
+  comparisons=(${(@)@:3})
 
   if [[ -z $assertion ]]; then
     assertion=$value
@@ -305,12 +312,30 @@ function assert() {
 
   if (( ! $+functions[_zunit_assert_${assertion}] )); then
     echo "$(color red "Assertion $assertion does not exist")"
-    return 127
+    exit 127
   fi
 
-  "_zunit_assert_${assertion}" $value $comparisons
+  _zunit_assertion_count=$(( _zunit_assertion_count + 1 ))
 
-  return $?
+  "_zunit_assert_${assertion}" $value ${(@f)comparisons[@]}
+
+  local state=$?
+
+  if [[ $state -ne 0 ]]; then
+    exit $state
+  fi
+}
+
+###
+# Mark the current test as skipped
+###
+function skip() {
+  # Exit code 48 will skip the test, so all we have to do
+  # to mark the test as skipped is exit.
+  # The reason for skipping is echoed to stdout first, so that
+  # it can be picked up by the error handler
+  echo "$@"
+  exit 48
 }
 
 ######################
@@ -321,13 +346,244 @@ function assert() {
 # Output usage information and exit
 ###
 function _zunit_usage() {
-  echo "\033[0;33mUsage:\033[0;m"
-  echo "  zunit [options] <tests...>"
+  echo "$(color yellow 'Usage:')"
+  echo "  zunit [options] [command] [tests...]"
   echo
-  echo "\033[0;33mOptions:\033[0;m"
+  echo "$(color yellow 'Commands:')"
+  echo "  init               Bootstrap zunit in a new project"
+  echo "  run [tests...]     Run tests"
+  echo
+  echo "$(color yellow 'Options:')"
   echo "  -h, --help         Output help text and exit"
   echo "  -v, --version      Output version information and exit"
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
+  echo "  -t, --tap          Output results in a TAP compatible format"
+  echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --allow-risky  Supress warnings generated for risky tests"
+}
+
+###
+# Output usage information and exit
+###
+function _zunit_run_usage() {
+  echo "$(color yellow 'Usage:')"
+  echo "  zunit run [options] [tests...]"
+  echo
+  echo "$(color yellow 'Options:')"
+  echo "  -h, --help         Output help text and exit"
+  echo "  -v, --version      Output version information and exit"
+  echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
+  echo "  -t, --tap          Output results in a TAP compatible format"
+  echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --allow-risky  Supress warnings generated for risky tests"
+}
+
+###
+# Output usage information and exit
+###
+function _zunit_init_usage() {
+  echo "$(color yellow 'Usage:')"
+  echo "  zunit init [options]"
+  echo
+  echo "$(color yellow 'Options:')"
+  echo "  -h, --help         Output help text and exit"
+  echo "  -v, --version      Output version information and exit"
+}
+
+###
+# Output a TAP compatible success message
+###
+_zunit_tap_success() {
+  echo "ok ${total} - ${name}"
+}
+
+###
+# Output a success message
+###
+_zunit_success() {
+  [[ -n $output_text ]] && _zunit_tap_success "$@" >> $logfile_text
+
+  passed=$(( passed + 1 ))
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_success "$@"
+    return
+  fi
+
+  echo "$(color green '✔') ${name}"
+}
+
+###
+# Output a TAP compatible failure message
+###
+_zunit_tap_failure() {
+  local message="$@"
+
+  echo "not ok ${total} - Failure: ${name}"
+  echo "  ---"
+  echo "  message: ${message}"
+  echo "  severity: fail"
+  echo "  ..."
+
+  [[ -n $fail_fast ]] && echo "Bail out!" && exit 1
+}
+
+###
+# Output a failure message
+###
+_zunit_failure() {
+  local message="$1" output="${(@)@:2}"
+
+  failed=$(( failed + 1 ))
+
+  [[ -n $output_text ]] && _zunit_tap_failure "$@" >> $logfile_text
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_failure "$@"
+    return
+  fi
+
+  echo "$(color red '✘' ${name})"
+  echo "  $(color red underline ${message})"
+  echo "  $(color red ${output})"
+
+  [[ -n $fail_fast ]] && revolver stop && exit 1
+}
+
+###
+# Output a TAP compatible error message
+###
+_zunit_tap_error() {
+  local message="$@"
+
+  echo "not ok ${total} - Error: ${name}"
+  echo "  ---"
+  echo "  message: ${message}"
+  echo "  severity: fail"
+  echo "  ..."
+
+  [[ -n $fail_fast ]] && echo "Bail out!" && exit 1
+}
+
+###
+# Output a error message
+###
+_zunit_error() {
+  local message="$1" output="${(@)@:2}"
+
+  errors=$(( errors + 1 ))
+
+  [[ -n $output_text ]] && _zunit_tap_error "$@" >> $logfile_text
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_error "$@"
+    return
+  fi
+
+  echo "$(color red '‼' ${name})"
+  echo "  $(color red underline ${message})"
+  echo "  $(color red ${output})"
+
+  [[ -n $fail_fast ]] && revolver stop && exit 1
+}
+
+###
+# Output a TAP compatible warning message
+###
+_zunit_tap_warn() {
+  local message="$@"
+
+  echo "ok ${total} - Warning: ${name}"
+  echo "  ---"
+  echo "  message: ${message}"
+  echo "  severity: comment"
+  echo "  ..."
+}
+
+###
+# Output a warning message
+###
+_zunit_warn() {
+  local message="$@"
+
+  warnings=$(( warnings + 1 ))
+  passed=$(( passed + 1 ))
+
+  [[ -n $output_text ]] && _zunit_tap_warn "$@" >> $logfile_text
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_warn "$@"
+    return
+  fi
+
+  echo "$(color yellow '‼') ${name}"
+  echo "  $(color yellow underline ${message})"
+}
+
+###
+# Output a TAP compatible skipped test message
+###
+_zunit_tap_skip() {
+  local message="$@"
+
+  echo "ok ${total} - # SKIP ${name}"
+  echo "  ---"
+  echo "  message: ${message}"
+  echo "  severity: comment"
+  echo "  ..."
+}
+
+###
+# Output a skipped test message
+###
+_zunit_skip() {
+  local message="$@"
+
+  skipped=$(( skipped + 1 ))
+
+  [[ -n $output_text ]] && _zunit_tap_skip "$@" >> $logfile_text
+
+  if [[ -n $tap ]]; then
+    _zunit_tap_skip "$@"
+    return
+  fi
+
+  echo "$(color magenta '•') Skipped: ${name}"
+  echo "  $(color gray "# ${message}")"
+}
+
+###
+# Format a ms timestamp in a human-readable format
+###
+_zunit_human_time() {
+  local ms=$1
+  local tmp=$(( $1 / 1000 ))
+  local days=$(( tmp / 60 / 60 / 24 ))
+  local hours=$(( tmp / 60 / 60 % 24 ))
+  local minutes=$(( tmp / 60 % 60 ))
+  local seconds=$(( tmp % 60 ))
+  (( $days > 0 )) && print -n "${days}d "
+  (( $hours > 0 )) && print -n "${hours}h "
+  (( $minutes > 0 )) && print -n "${minutes}m "
+  (( $seconds > 5 )) && print -n "${seconds}s "
+  (( $seconds < 30 )) && (( $seconds > 5 )) && print -n "$(( ms - $((seconds*1000)) ))ms"
+  (( $tmp <= 5 )) && print -n "${1}ms"
+}
+
+###
+# Output test results
+###
+_zunit_output_results() {
+  integer elapsed=$(( end_time - start_time ))
+  echo
+  echo "$total tests run in $(_zunit_human_time $elapsed)"
+  echo
+  echo "$(color yellow underline 'Results')                        "
+  echo "$(color green '✔') Passed      $passed                    "
+  echo "$(color red '✘') Failed      $failed                      "
+  echo "$(color red '‼') Errors      $errors                      "
+  echo "$(color magenta '•') Skipped     $skipped                 "
+  echo "$(color yellow '‼') Warnings    $warnings                 "
 }
 
 ###
@@ -336,9 +592,9 @@ function _zunit_usage() {
 _zunit_execute_test() {
   local name="$1" body="$2"
 
-  if [[ $body && $name ]]; then
+  if [[ -n $body ]] && [[ -n $name ]]; then
     # Update the progress indicator
-    revolver update "${name}"
+    [[ -z $tap ]] && revolver update "${name}"
     sleep 0.1
 
     # Make sure we don't already have a function defined
@@ -348,32 +604,33 @@ _zunit_execute_test() {
     func="function __zunit_tmp_test_function() {
       setopt ERR_EXIT
       integer state
+      integer _zunit_assertion_count=0
       local output
       typeset -a lines
 
       if (( $+functions[__zunit_test_setup] )); then
-        __zunit_test_setup
+        __zunit_test_setup >/dev/null 2>&1
       fi
 
       ${body}
 
       if (( $+functions[__zunit_test_teardown] )); then
-        __zunit_test_teardown
+        __zunit_test_teardown >/dev/null 2>&1
       fi
+
+      [[ \$_zunit_assertion_count -gt 0 ]] || return 248
     }"
 
     # Quietly eval the body into a variable as a first test
     output=$(eval "$(echo "$func")" 2>&1)
 
+    total=$(( total + 1 ))
+
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      echo "$(color red '✘' ${name})"
-      echo "    $(color red underline "Failed to parse test body")"
-      echo "    $(color red $output)"
+      _zunit_error 'Failed to parse test body' $output
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
-
-      return 1
+      return 126
     fi
 
     # Run the eval again, this time within the current context so that
@@ -383,28 +640,30 @@ _zunit_execute_test() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_tmp_test_function] )); then
-      echo "$(color red '✘' ${name})"
-      echo "    $(color red underline "Failed to parse test body")"
+      _zunit_error 'Failed to parse test body'
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
-
-      return 1
+      return 126
     fi
 
     # Execute the test body, and capture its output
     output="$(__zunit_tmp_test_function 2>&1)"
 
     # Output the result to the user
-    if [[ $? -eq 0 ]]; then
-      echo "$(color green '✔') ${name}"
-      return 0
-    else
-      echo "$(color red '✘' ${name})"
-      if [[ -n $output ]]; then
-        echo "    $(color red "${output}")"
-      fi
+    state=$?
+    if [[ $state -eq 48 ]]; then
+      _zunit_skip $output
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
+      return
+    elif [[ -z $allow_risky && $state -eq 248 ]]; then
+      _zunit_warn 'No assertions were run, test is risky'
+
+      return
+    elif [[ -n $allow_risky && $state -eq 248 ]] || [[ $state -eq 0 ]]; then
+      _zunit_success
+
+      return
+    else
+      _zunit_failure $output
 
       return 1
     fi
@@ -431,11 +690,11 @@ function _zunit_run_testfile() {
   local testbody testname pattern \
         setup teardown \
         testfile="$1" testdir="$(dirname "$testfile")"
-
+  local -a lines
   typeset -A tests
 
   # Update status message
-  revolver update "Loading tests from $testfile"
+  [[ -z $tap ]] && revolver update "Loading tests from $testfile"
 
   # A regex pattern to match test declarations
   pattern='^ *@test  *([^ ].*)  *\{ *(.*)$'
@@ -485,13 +744,9 @@ function _zunit_run_testfile() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse setup method")"
-      echo "    $(color red $output)"
+      _zunit_error "Failed to parse setup method" $output
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
-
-      return 1
+      return 126
     fi
 
     # Run the eval again, this time within the current context so that
@@ -501,12 +756,9 @@ function _zunit_run_testfile() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_test_setup] )); then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse setup method")"
+      _zunit_error "Failed to parse setup method"
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
-
-      return 1
+      return 126
     fi
   fi
 
@@ -520,13 +772,9 @@ function _zunit_run_testfile() {
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse teardown method")"
-      echo "    $(color red $output)"
+      _zunit_error "Failed to parse teardown method" $output
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
-
-      return 1
+      return 126
     fi
 
     # Run the eval again, this time within the current context so that
@@ -536,12 +784,9 @@ function _zunit_run_testfile() {
     # Any errors should have been caught above, but if the function
     # does not exist, we can't go any further
     if (( ! $+functions[__zunit_test_teardown] )); then
-      echo "$(color red '✘' ${testfile})"
-      echo "    $(color red underline "Failed to parse teardown method")"
+      _zunit_error "Failed to parse teardown method"
 
-      [[ -n $fail_fast ]] && revolver stop && exit 1
-
-      return 1
+      return 126
     fi
   fi
 
@@ -568,7 +813,7 @@ function _zunit_parse_argument() {
   # If the argument is a directory
   if [[ -d $argument ]]; then
     # Loop through each of the files in the directory
-    for file in $(find $argument -depth 1); do
+    for file in $(find $argument -mindepth 1 -maxdepth 1); do
       # Run it through the parser again
       _zunit_parse_argument $file
     done
@@ -594,26 +839,117 @@ function _zunit_parse_argument() {
     echo $(color red "File '$argument' is not a valid zunit test file") >&2
     echo "Test files must contain the following shebang on the first line" >&2
     echo "  #!/usr/bin/env zunit" >&2
-    exit 1
+    exit 126
   fi
 
   # The file could not be found, so we throw a fatal error
-  echo $(color red "Test file '$argument' could not be found") >&2
-  exit 1
+  echo $(color red "Test file or directory '$argument' could not be found") >&2
+  exit 126
+}
+
+###
+# Parse a YAML config file
+# Based on https://gist.github.com/pkuczynski/8665367
+###
+_zunit_parse_yaml() {
+  local s w fs prefix=$2
+  s='[[:space:]]*'
+  w='[a-zA-Z0-9_]*'
+  fs="$(echo @|tr @ '\034')"
+  sed -ne "s|^\(${s}\)\(${w}\)${s}:${s}\"\(.*\)\"${s}\$|\1${fs}\2${fs}\3|p" \
+      -e "s|^\(${s}\)\(${w}\)${s}[:-]${s}\(.*\)${s}\$|\1${fs}\2${fs}\3|p" "$1" |
+  awk -F"${fs}" '{
+  indent = length($1)/2;
+  vname[indent] = $2;
+  for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+          vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+          printf("local -a %s%s%s; %s%s%s=(\"%s\")\n", "'"$prefix"'",vn, $2,  "'"$prefix"'",vn, $2, $3);
+      }
+  }' | sed 's/_=/+=/g'
+}
+
+function _zunit_init() {
+  local yaml="tap: false
+directories:
+  tests: tests
+  output: tests/_output
+  support: tests/_support"
+
+  local example="#!/usr/bin/env zunit
+
+@test 'Example' {
+  assert "'"true"'" same_as "'"false"'"
+}"
+
+  if [[ -f "$PWD/.zunit.yml" ]]; then
+    echo $(color red 'Zunit config file already exists at $PWD/.zunit.yml') >&2
+    exit 1
+  else
+    echo "$yaml" > "$PWD/.zunit.yml"
+  fi
+
+  if [[ -d "$PWD/tests" ]]; then
+    echo $(color red 'Directory already exists at $PWD/tests') >&2
+    exit 1
+  else
+    mkdir -p tests/_{output,support}
+    touch tests/_{output,support}/.gitkeep
+
+    echo "$example" > "$PWD/tests/example.zunit"
+  fi
 }
 
 ###
 # Run tests
 ###
 function _zunit_run() {
-  local arguments=("$@") testfiles=()
+  local -a arguments testfiles fail_fast tap output_text allow_risky
+
+  zmodload zsh/datetime
+  local start_time=$((EPOCHREALTIME*1000)) end_time
+
+  zparseopts -D -E \
+    h=help -help=help \
+    v=version -version=version \
+    f=fail_fast -fail-fast=fail_fast \
+    t=tap -tap=tap \
+    -output-text=output_text \
+    -allow-risky=allow_risky
+
+  if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
+    tap=1
+    echo 'TAP version 13'
+  fi
+
+  if [[ -n $output_text ]]; then
+    if [[ $missing_config -eq 1 ]]; then
+      echo $(color red '.zunit.yml could not be found. Run `zulu init`')
+      exit 1
+    fi
+
+    if [[ -z $zunit_config_directories_output ]]; then
+      echo $(color red 'Output directory must be specified in .zunit.yml')
+      exit 1
+    fi
+
+    logfile_text="$zunit_config_directories_output/output.txt"
+    echo 'TAP version 13' >! $logfile_text
+  fi
+
+  arguments=("$@")
+  testfiles=()
 
   # Start the progress indicator
-  revolver start 'Loading tests'
+  [[ -z $tap ]] && revolver start 'Loading tests'
 
   # If no arguments are passed, use the current directory
   if [[ ${#arguments} -eq 0 ]]; then
-    arguments=("tests")
+    if [[ -n $zunit_config_directories_tests ]]; then
+      arguments=("$zunit_config_directories_tests")
+    else
+      arguments=("tests")
+    fi
   fi
 
   # Loop through each of the passed arguments
@@ -625,39 +961,98 @@ function _zunit_run() {
 
   # Loop through each of the test files and run them
   local line
+  local total=0 passed=0 failed=0 errors=0 warnings=0 skipped=0
   for testfile in $testfiles; do
     _zunit_run_testfile $testfile
   done
 
-  revolver stop
+  [[ -n $tap ]] && echo "1..$total"
+
+  end_time=$((EPOCHREALTIME*1000))
+
+  [[ -z $tap ]] && _zunit_output_results && revolver stop
+
+  [[ $passed -eq $total ]]
 }
 
 ###
 # The main zunit process
 ###
 function _zunit() {
-  local help version ctx="$1"
+  local help version ctx="$1" missing_dependencies=0 missing_config=1
 
-  zparseopts -D \
-    h=help -help=help \
-    v=version -version=version \
-    f=fail_fast -fail-fast=fail_fast
-
-  # If the help option is passed,
-  # output usage information and exit
-  if [[ $help ]]; then
-    _zunit_usage
-    exit 0
+  if [[ -f .zunit.yml ]]; then
+    # Try and parse the config file within a subprocess,
+    # to avoid killing the main thread
+    $(eval $(_zunit_parse_yaml .zunit.yml 'zunit_config_') >/dev/null 2>&1)
+    if [[ $? -eq 0 ]]; then
+      # Perform the parse again, in context, so that the
+      # config vars are loaded into the enviroment
+      eval $(_zunit_parse_yaml .zunit.yml 'zunit_config_') >/dev/null 2>&1
+      missing_config=0
+    else
+      echo "\033[0;31mFailed to parse config file\033[0;m" >&2
+      exit 1
+    fi
   fi
+
+  $(type color >/dev/null 2>&1)
+  if [[ $? -ne 0 ]]; then
+    missing_dependencies=$(( missing_dependencies + 1 ))
+    echo "\033[0;31mMissing required dependency: Color - https://github.com/molovo/color\033[0;m" >&2
+  fi
+
+  $(type revolver >/dev/null 2>&1)
+  if [[ $? -ne 0 ]]; then
+    missing_dependencies=$(( missing_dependencies + 1 ))
+    echo "\033[0;31mMissing required dependency: Revolver - https://github.com/molovo/revolver\033[0;m" >&2
+  fi
+
+  [[ $missing_dependencies -gt 0 ]] && exit 1
+
+  zparseopts -D -E \
+    h=help -help=help \
+    v=version -version=version
 
   # If the version option is passed,
   # output version information and exit
-  if [[ $version ]]; then
-    echo '0.2.0'
+  if [[ -n $version ]]; then
+    echo '0.3.0'
     exit 0
   fi
 
-  _zunit_run "$@"
+  case "$ctx" in
+    init )
+      # If the help option is passed,
+      # output usage information and exit
+      if [[ -n $help ]]; then
+        _zunit_init_usage
+        exit 0
+      fi
+
+      _zunit_init "${(@)@:2}"
+      ;;
+    run )
+      # If the help option is passed,
+      # output usage information and exit
+      if [[ -n $help ]]; then
+        _zunit_run_usage
+        exit 0
+      fi
+
+      _zunit_run "${(@)@:2}"
+      ;;
+    * )
+      # If the help option is passed,
+      # output usage information and exit
+      if [[ -n $help ]]; then
+        _zunit_usage
+        exit 0
+      fi
+
+      _zunit_run "$@"
+      ;;
+  esac
 }
 
 _zunit "$@"

@@ -1,0 +1,21 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_does_not_match success' {
+  run assert 'test' does_not_match '[0-9]+'
+  assert $state equals 0
+  assert $output is_empty
+
+  run assert 123 does_not_match '[a-z]{4}'
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_does_not_match failure' {
+  run assert 'test' does_not_match '[a-z]{4}'
+  assert $state equals 1
+  assert $output same_as "'test' matches /[a-z]{4}/"
+
+  run assert 123 does_not_match '[0-9]+'
+  assert $state equals 1
+  assert $output same_as "'123' matches /[0-9]+/"
+}

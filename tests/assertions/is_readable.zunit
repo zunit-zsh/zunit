@@ -1,0 +1,20 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_readable success' {
+  run assert './is_readable.zunit' is_readable
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_is_readable failure' {
+  # Make file unreadable before checking it
+  chmod 000 "$testdir/../_support/non-readable-file"
+
+  run assert '../_support/non-readable-file' is_readable
+
+  # Change permissions back before the test makes its assertions
+  chmod 644 "$testdir/../_support/non-readable-file"
+
+  assert $state equals 1
+  assert $output same_as "'../_support/non-readable-file' does not exist or is not readable"
+}

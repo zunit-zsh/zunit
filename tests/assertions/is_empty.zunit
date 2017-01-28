@@ -1,0 +1,13 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_empty success' {
+  run assert '' is_empty
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_is_empty failure' {
+  run assert 'notempty' is_empty
+  assert $state equals 1
+  assert $output same_as "'notempty' is not empty"
+}

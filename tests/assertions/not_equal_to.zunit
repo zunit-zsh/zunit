@@ -1,0 +1,13 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_not_equal_to success' {
+  run assert 1 not_equal_to 0
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_not_equal_to failure' {
+  run assert 1 not_equal_to 1
+  assert $state equals 1
+  assert $output same_as "'1' is equal to '1'"
+}

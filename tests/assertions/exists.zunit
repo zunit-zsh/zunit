@@ -1,0 +1,14 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_exists success' {
+  run assert './exists.zunit' exists
+  echo $output
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_exists failure' {
+  run assert '../non-existent-file' exists
+  assert $state equals 1
+  assert $output same_as "'../non-existent-file' does not exist"
+}

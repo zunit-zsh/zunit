@@ -3,7 +3,7 @@
 @test 'Test loading script with global variable sets the variable' {
   load ./_support/script-with-global-variable
 
-  assert "$lost_city" equals 'Atlantis'
+  assert "$lost_city" same_as 'Atlantis'
 }
 
 @test 'Test loading script with local variable does not set the variable' {
