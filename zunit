@@ -937,6 +937,20 @@ function _zunit_run() {
     echo 'TAP version 13' >! $logfile_text
   fi
 
+  if [[ -n $zunit_config_directories_support ]]; then
+    local support="$zunit_config_directories_support"
+    if [[ ! -d $support ]]; then
+      echo $(color red "Support directory at $support is missing")
+      exit 1
+    fi
+
+    if [[ -f "$support/bootstrap" ]]; then
+      source "$support/bootstrap"
+      echo "$(color green '✔') Sourced bootstrap script $support/bootstrap"
+      which crash
+    fi
+  fi
+
   arguments=("$@")
   testfiles=()
 
