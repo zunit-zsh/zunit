@@ -896,6 +896,10 @@ directories:
     mkdir -p tests/_{output,support}
     touch tests/_{output,support}/.gitkeep
 
+    echo '#!/usr/bin/env zsh
+
+# Write your bootstrap code here' > tests/_support/bootstrap
+
     echo "$example" > "$PWD/tests/example.zunit"
   fi
 }
