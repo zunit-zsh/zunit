@@ -680,6 +680,10 @@ function _zunit_output_results() {
   echo "$(color red '‼') Errors      $errors                      "
   echo "$(color magenta '•') Skipped     $skipped                 "
   echo "$(color yellow '‼') Warnings    $warnings                 "
+  echo
+
+  [[ -n $output_text ]] && echo "TAP report written at $PWD/$logfile_text"
+  [[ -n $output_html ]] && echo "HTML report written at $PWD/$logfile_html"
 }
 
 ###
