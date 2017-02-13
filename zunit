@@ -393,14 +393,14 @@ function _zunit_init_usage() {
 ###
 # Output a TAP compatible success message
 ###
-_zunit_tap_success() {
+function _zunit_tap_success() {
   echo "ok ${total} - ${name}"
 }
 
 ###
 # Output a success message
 ###
-_zunit_success() {
+function _zunit_success() {
   [[ -n $output_text ]] && _zunit_tap_success "$@" >> $logfile_text
 
   passed=$(( passed + 1 ))
@@ -416,7 +416,7 @@ _zunit_success() {
 ###
 # Output a TAP compatible failure message
 ###
-_zunit_tap_failure() {
+function _zunit_tap_failure() {
   local message="$@"
 
   echo "not ok ${total} - Failure: ${name}"
@@ -431,7 +431,7 @@ _zunit_tap_failure() {
 ###
 # Output a failure message
 ###
-_zunit_failure() {
+function _zunit_failure() {
   local message="$1" output="${(@)@:2}"
 
   failed=$(( failed + 1 ))
@@ -453,7 +453,7 @@ _zunit_failure() {
 ###
 # Output a TAP compatible error message
 ###
-_zunit_tap_error() {
+function _zunit_tap_error() {
   local message="$@"
 
   echo "not ok ${total} - Error: ${name}"
@@ -468,7 +468,7 @@ _zunit_tap_error() {
 ###
 # Output a error message
 ###
-_zunit_error() {
+function _zunit_error() {
   local message="$1" output="${(@)@:2}"
 
   errors=$(( errors + 1 ))
@@ -490,7 +490,7 @@ _zunit_error() {
 ###
 # Output a TAP compatible warning message
 ###
-_zunit_tap_warn() {
+function _zunit_tap_warn() {
   local message="$@"
 
   echo "ok ${total} - Warning: ${name}"
@@ -503,7 +503,7 @@ _zunit_tap_warn() {
 ###
 # Output a warning message
 ###
-_zunit_warn() {
+function _zunit_warn() {
   local message="$@"
 
   warnings=$(( warnings + 1 ))
@@ -523,7 +523,7 @@ _zunit_warn() {
 ###
 # Output a TAP compatible skipped test message
 ###
-_zunit_tap_skip() {
+function _zunit_tap_skip() {
   local message="$@"
 
   echo "ok ${total} - # SKIP ${name}"
@@ -536,7 +536,7 @@ _zunit_tap_skip() {
 ###
 # Output a skipped test message
 ###
-_zunit_skip() {
+function _zunit_skip() {
   local message="$@"
 
   skipped=$(( skipped + 1 ))
@@ -555,7 +555,7 @@ _zunit_skip() {
 ###
 # Format a ms timestamp in a human-readable format
 ###
-_zunit_human_time() {
+function _zunit_human_time() {
   local ms=$1
   local tmp=$(( $1 / 1000 ))
   local days=$(( tmp / 60 / 60 / 24 ))
@@ -573,7 +573,7 @@ _zunit_human_time() {
 ###
 # Output test results
 ###
-_zunit_output_results() {
+function _zunit_output_results() {
   integer elapsed=$(( end_time - start_time ))
   echo
   echo "$total tests run in $(_zunit_human_time $elapsed)"
@@ -589,7 +589,7 @@ _zunit_output_results() {
 ###
 # Execute a test and store the result
 ###
-_zunit_execute_test() {
+function _zunit_execute_test() {
   local name="$1" body="$2"
 
   if [[ -n $body ]] && [[ -n $name ]]; then
@@ -851,7 +851,7 @@ function _zunit_parse_argument() {
 # Parse a YAML config file
 # Based on https://gist.github.com/pkuczynski/8665367
 ###
-_zunit_parse_yaml() {
+function _zunit_parse_yaml() {
   local s w fs prefix=$2
   s='[[:space:]]*'
   w='[a-zA-Z0-9_]*'
