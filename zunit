@@ -391,6 +391,17 @@ function _zunit_init_usage() {
 }
 
 ###
+# Shutdown testing early
+# Usually called if --fail-fast is specified
+###
+function _zunit_fail_shutdown() {
+  # Kill the revolver process
+  [[ -z $tap ]] && revolver stop
+
+  exit 1
+}
+
+###
 # Output a TAP compatible success message
 ###
 function _zunit_tap_success() {
@@ -425,7 +436,7 @@ function _zunit_tap_failure() {
   echo "  severity: fail"
   echo "  ..."
 
-  [[ -n $fail_fast ]] && echo "Bail out!" && exit 1
+  [[ -n $fail_fast ]] && echo "Bail out!"
 }
 
 ###
@@ -440,14 +451,13 @@ function _zunit_failure() {
 
   if [[ -n $tap ]]; then
     _zunit_tap_failure "$@"
-    return
+  else
+    echo "$(color red '✘' ${name})"
+    echo "  $(color red underline ${message})"
+    echo "  $(color red ${output})"
   fi
 
-  echo "$(color red '✘' ${name})"
-  echo "  $(color red underline ${message})"
-  echo "  $(color red ${output})"
-
-  [[ -n $fail_fast ]] && revolver stop && exit 1
+  [[ -n $fail_fast ]] && _zunit_fail_shutdown
 }
 
 ###
@@ -462,7 +472,7 @@ function _zunit_tap_error() {
   echo "  severity: fail"
   echo "  ..."
 
-  [[ -n $fail_fast ]] && echo "Bail out!" && exit 1
+  [[ -n $fail_fast ]] && echo "Bail out!"
 }
 
 ###
@@ -477,14 +487,13 @@ function _zunit_error() {
 
   if [[ -n $tap ]]; then
     _zunit_tap_error "$@"
-    return
+  else
+    echo "$(color red '‼' ${name})"
+    echo "  $(color red underline ${message})"
+    echo "  $(color red ${output})"
   fi
 
-  echo "$(color red '‼' ${name})"
-  echo "  $(color red underline ${message})"
-  echo "  $(color red ${output})"
-
-  [[ -n $fail_fast ]] && revolver stop && exit 1
+  [[ -n $fail_fast ]] && _zunit_fail_shutdown
 }
 
 ###
