@@ -256,6 +256,27 @@ directories:
 
 To set up ZUnit for a new project, just run `zunit init` in the project's root directory. This will create the `.zunit.yml` config file and relevant directories, including an example test.
 
+### [Travis CI](https://travis-ci.org) config
+
+ZUnit can generate a `.travis.yml` file for you, which contains the build steps needed to install ZUnit's dependencies and then run tests. Just run `zunit init --travis` when initialising your project.
+
+An example `.travis.yml` is below:
+
+```yaml
+addons:
+  apt:
+    packages:
+      zsh
+before_script:
+- mkdir .bin
+- curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
+- curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
+- curl -L https://raw.githubusercontent.com/molovo/zunit/master/zunit > .bin/zunit
+- chmod u+x .bin/{color,revolver,zunit}
+- export PATH="$PWD/.bin:$PATH"
+script: zunit
+```
+
 ## Running Tests
 
 The CLI program `zunit` is used to run tests.
@@ -284,6 +305,15 @@ zunit --tap
 
 # Prints TAP compatible output to the _output directory
 zunit --output-text
+```
+
+### HTML Reports
+
+ZUnit is capable of producing a detail HTML report, which you can view in your browser.
+
+```sh
+# Prints HTML report to the _output directory
+zunit --output-html
 ```
 
 ### Risky Tests
