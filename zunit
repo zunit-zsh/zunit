@@ -400,6 +400,7 @@ function _zunit_init_usage() {
   echo "$(color yellow 'Options:')"
   echo "  -h, --help         Output help text and exit"
   echo "  -v, --version      Output version information and exit"
+  echo "  -t, --travis       Generate .travis.yml in project"
 }
 
 ###
@@ -970,6 +971,10 @@ function _zunit_parse_yaml() {
 }
 
 function _zunit_init() {
+  local with_travis
+
+  zparseopts -D t=with_travis -travis=with_travis
+
   local yaml="tap: false
 directories:
   tests: tests
@@ -982,25 +987,49 @@ directories:
   assert "'"true"'" same_as "'"false"'"
 }"
 
+  local bootstrap="#!/usr/bin/env zsh
+
+# Write your bootstrap code here"
+
+  local travis_yml='addons:
+    apt:
+      packages:
+        zsh
+  before_script:
+  - mkdir .bin
+  - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
+  - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
+  - curl -L https://raw.githubusercontent.com/molovo/zunit/master/zunit > .bin/zunit
+  - chmod u+x .bin/{color,revolver,zunit}
+  - export PATH="$PWD/.bin:$PATH"
+  script: zunit'
+
   if [[ -f "$PWD/.zunit.yml" ]]; then
-    echo $(color red 'Zunit config file already exists at $PWD/.zunit.yml') >&2
+    echo $(color red "Zunit config file already exists at $PWD/.zunit.yml") >&2
     exit 1
   else
     echo "$yaml" > "$PWD/.zunit.yml"
   fi
 
   if [[ -d "$PWD/tests" ]]; then
-    echo $(color red 'Directory already exists at $PWD/tests') >&2
+    echo $(color red "Directory already exists at $PWD/tests") >&2
     exit 1
   else
     mkdir -p tests/_{output,support}
     touch tests/_{output,support}/.gitkeep
 
-    echo '#!/usr/bin/env zsh
-
-# Write your bootstrap code here' > tests/_support/bootstrap
-
+    echo "$bootstrap" > "$PWD/tests/_support/bootstrap"
     echo "$example" > "$PWD/tests/example.zunit"
+  fi
+
+    #statements
+  if [[ -n $with_travis ]]; then
+    if [[ -f "$PWD/.travis.yml" ]]; then
+      echo $(color red "Travis config already exists at $PWD/.travis.yml") >&2
+      exit 1
+    else
+      echo "$travis_yml" > "$PWD/.travis.yml"
+    fi
   fi
 }
 
