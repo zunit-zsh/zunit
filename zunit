@@ -999,7 +999,7 @@ function _zunit_run() {
 
   [[ -z $tap ]] && _zunit_output_results && revolver stop
 
-  [[ $passed -eq $total ]]
+  [[ $(( $passed + $skipped )) -eq $total ]]
 }
 
 ###
