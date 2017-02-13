@@ -4,6 +4,16 @@
 # Internal assertion functions #
 ################################
 
+function _zunit_html_header() {
+  echo '<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta http-equiv="X-UA-Compatible" content="ie=edge"> <title>ZUnit Test Results</title> <link href="https://fonts.googleapis.com/css?family=Fira+Mono" rel="stylesheet"> <style> html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, main, menu, nav, output, ruby, section, summary, time, mark, audio, video { margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline; box-sizing: border-box; } /* HTML5 display-role reset for older browsers */ article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section { display: block; } body { line-height: 1; } ol, ul { list-style: none; } blockquote, q { quotes: none; } blockquote:before, blockquote:after, q:before, q:after { content: ""; content: none; } table { border-collapse: collapse; border-spacing: 0; } html { font: 100%/1.5em "Fira Code", "Fira Mono", monospace} body { line-height: 1.5em; color: #394648; font-size: 1.125em; } h1, h2, h3, h4, h5, h6 { font-weight: 700; } h1 { font-size: 3em; line-height: 1em; margin-bottom: 0.5em; } h2 { font-size: 2.25em; line-height: 1.35em; margin-bottom: 0.66667em; } h3 { font-size: 1.5em; line-height: 1em; margin-bottom: 1em; } h4 { font-size: 1.3125em; line-height: 1.14286em; margin-bottom: 1.14286em; } h5 { font-size: 1.125em; line-height: 1.35em; margin-bottom: 1.33333em; } h6 { font-size: 1em; line-height: 1.5em; margin-bottom: 1.5em; } p.lead { font-size: 1.5em; } p, ul, ol, dl, blockquote { margin-bottom: 1.5em; } ul { list-style: disc inside; } ol { list-style: decimal inside; } ul ul, ol ul { list-style: circle inside; margin-bottom: 0; margin-left: 1.5em; } ul ol, ol ol { list-style: lower-roman inside; margin-bottom: 0; margin-left: 1.5em; } em { font-style: italic; } strong { font-weight: 700; } small { font-size: .75em; line-height: .5em; } hr { height: 0; margin: calc(3em - 1px) auto 3em; border: solid rgba(53, 12, 16, 0.05); border-width: 0 0 1px; } a { color: #4897da; text-decoration: none; } blockquote, figcaption { display: block; } pre { margin: 0 0 1.5em; } code { font-family: "Fira Code", "Courier New", "Inconsolata", monospace; line-height: 0; } body { padding: 3em 1.5em; } @media (min-width: 36em) { body { padding: 3em; } } @media (min-width: 60em) { body { padding: 3em 6em; } } .header { border-bottom: 1px solid rgba(0,0,0,.1); margin-bottom: 3em; } .header--nav a, .header--nav span { margin-right: 1.5em; } .main { display: flex; } .results { flex: 0 1 100%; padding-right: 15em; } .sidebar--nav { flex: 0 0 12em; position: fixed; right: 6em; top: 7.5em; width: 12em; } .results { list-style: none; } .results--item { border-radius: .15em; display: none; padding: 0 .75em; } .results--item.visible { display: block; } .results--item.expanded { border: 1px solid rgba(0,0,0,.1); margin: 0 0 .375em; } .results--item span { display: none; } .results--item.expanded span { display: block; } .results--item pre { display: none; font-size: .75em; margin: 0; padding: 0; } .results--item.expanded pre { display: block; } .results--item h6 { line-height: 2.25em; margin: 0; } .results--item h6::before { box-sizing: border-box; display: inline-block; margin-right: .375em; vertical-align: middle; } .results--item:not(.passed) h6::after { content: "+"; float: right; } .results--item:not(.passed).expanded h6::after { content: "⌃"; } .results--item.passed h6::before { color: #4ecdc4; content: "✔"; } .results--item.failed h6 { color: #ff6b6b; } .results--item.failed h6::before { color: #ff6b6b; content: "✘"; } .results--item.error { background: #b23939; color: #fff; } .results--item.error h6::before { content: "‼"; } .results--item.warning h6::before { color: #dccb80; content: "‼"; } .results--item.skipped h6::before { color: #d567c6; content: "•"; } .sidebar--nav ul { list-style: none; } .sidebar--nav-item { background: rgba(0,0,0,.1); border-radius: .15em; margin-bottom: .375em; padding: .375em .75em; } .sidebar--nav-item_total, .sidebar--nav-item_elapsed { padding: 0 .75em; } .sidebar--nav-item_elapsed { margin-bottom: 1.5em; } .sidebar--nav-item-count { float: right; font-weight: 700; } .sidebar--nav-item_all.selected { background: #4897da; color: #fff; } .sidebar--nav-item_passed.selected { background: #4ecdc4; color: #fff; } .sidebar--nav-item_failed.selected { background: #ff6b6b; color: #fff; } .sidebar--nav-item_errors.selected { background: #b23939; color: #fff; } .sidebar--nav-item_skipped.selected { background: #d567c6; color: #fff; } .sidebar--nav-item_warnings.selected { background: #dccb80; } </style> <script>;(function() { "use strict"; window.addEventListener("DOMContentLoaded", function() { var results = document.querySelectorAll(".results--item"), links = document.querySelectorAll(".sidebar--nav-item"); var hideAll = function(evt) { for (var i = 0; i < links.length; i++) { (function(link) { if (link.classList.contains("sidebar--nav-item_all")) { return; } if (!link.classList.contains("selected")) { link.classList.add("selected"); } toggleVisibility({currentTarget: link}) }(links[i])); } }; var showAll = function(evt) { for (var i = 0; i < links.length; i++) { (function(link) { if (link.classList.contains("sidebar--nav-item_all")) { return; } if (link.classList.contains("selected")) { link.classList.remove("selected"); } toggleVisibility({currentTarget: link}); }(links[i])); } }; var allLinksAreVisible = function() { var visible = true; for (var i = 0; i < links.length; i++) { if (!links[i].classList.contains("sidebar--nav-item_all") && !links[i].classList.contains("selected")) { visible = false; } } return visible; }; var toggleVisibility = function(evt) { evt = evt || window.evt; var link = evt.currentTarget, target = link.dataset.target; if (link.classList.contains("selected")) { link.classList.remove("selected"); if (link.classList.contains("sidebar--nav-item_all")) { hideAll(); } else { document.querySelector(".sidebar--nav-item_all").classList.remove("selected"); } } else { link.classList.add("selected"); if (link.classList.contains("sidebar--nav-item_all")) { showAll(); } else { if (allLinksAreVisible()) { document.querySelector(".sidebar--nav-item_all").classList.add("selected"); } } } for (var i = 0; i < results.length; i++) { (function(result) { if (result.classList.contains(target)) { if (link.classList.contains("selected")) { result.classList.add("visible"); } else { result.classList.remove("visible"); } } }(results[i])); } }; var toggleResultExpansion = function(evt) { evt = evt || window.event; var result = evt.currentTarget; if (result.classList.contains("expanded")) { result.classList.remove("expanded"); } else { result.classList.add("expanded"); } }; for (var i = 0; i < results.length; i++) { (function(result) { if (!result.classList.contains("passed")) { result.addEventListener("click", toggleResultExpansion, true); } }(results[i])); }; for (var i = 0; i < links.length; i++) { (function(link) { link.addEventListener("click", toggleVisibility, true); }(links[i])); }; }); })();</script> </head> <body> <header class="header"> <nav class="header--nav"> <span>ZUnit Test Results</span> <a href="https://github.com/molovo/zunit">Documentation</a> </nav> </header> <main role="main" class="main"> <ul class="results">'
+}
+
+function _zunit_html_footer() {
+  integer elapsed=$(( end_time - start_time ))
+  output="</ul> <nav class='sidebar--nav'> <ul> <li class='sidebar--nav-item_total'><strong>$total</strong> tests run</li> <li class='sidebar--nav-item_elapsed'>taking <strong>$(_zunit_human_time $elapsed)</strong></li> <li class='sidebar--nav-item sidebar--nav-item_all selected'> All <span class='sidebar--nav-item-count'>$total</span> </li> <li class='sidebar--nav-item sidebar--nav-item_passed selected' data-target='passed'> Passed <span class='sidebar--nav-item-count'>$passed</span> </li> <li class='sidebar--nav-item sidebar--nav-item_failed selected' data-target='failed'> Failed <span class='sidebar--nav-item-count'>$failed</span> </li> <li class='sidebar--nav-item sidebar--nav-item_errors selected' data-target='error'> Errors <span class='sidebar--nav-item-count'>$errors</span> </li> <li class='sidebar--nav-item sidebar--nav-item_warnings selected' data-target='warning'> Warnings <span class='sidebar--nav-item-count'>$warnings</span> </li> <li class='sidebar--nav-item sidebar--nav-item_skipped selected' data-target='skipped'> Skipped <span class='sidebar--nav-item-count'>$skipped</span> </li> </ul> </nav> </main> </body> </html>"
+  echo $output
+}
+
 ###
 # Assert that two integers are equal
 ###
@@ -359,6 +369,7 @@ function _zunit_usage() {
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
   echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
 }
 
@@ -375,6 +386,7 @@ function _zunit_run_usage() {
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
   echo "      --output-text  Print results to a text log, in TAP compatible format"
+  echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
 }
 
@@ -403,7 +415,24 @@ function _zunit_fail_shutdown() {
 
   [[ -z $tap ]] && _zunit_output_results
 
+  # Print end of HTML report
+  if [[ -n $output_html ]]; then
+    name='Execution halted after failure'
+    _zunit_html_error >> $logfile_html
+    _zunit_html_footer >> $logfile_html
+  fi
+
   exit 1
+}
+
+###
+# Output a HTML fatal error message
+###
+_zunit_html_fatal_error() {
+  message="$@"
+  echo "<li class='results--item error fatal visible'>
+    <h6>$message</h6>
+  </li>"
 }
 
 ###
@@ -414,10 +443,20 @@ function _zunit_tap_success() {
 }
 
 ###
+# Output a HTML success message
+###
+_zunit_html_success() {
+  echo "<li class='results--item passed visible'>
+    <h6>$name</h6>
+  </li>"
+}
+
+###
 # Output a success message
 ###
 function _zunit_success() {
   [[ -n $output_text ]] && _zunit_tap_success "$@" >> $logfile_text
+  [[ -n $output_html ]] && _zunit_html_success "$@" >> $logfile_html
 
   passed=$(( passed + 1 ))
 
@@ -445,6 +484,16 @@ function _zunit_tap_failure() {
 }
 
 ###
+# Output a HTML failure message
+###
+_zunit_html_failure() {
+  echo "<li class='results--item failed visible'>
+    <h6>$name</h6>
+    <pre><code>$message</code></pre>
+  </li>"
+}
+
+###
 # Output a failure message
 ###
 function _zunit_failure() {
@@ -453,6 +502,7 @@ function _zunit_failure() {
   failed=$(( failed + 1 ))
 
   [[ -n $output_text ]] && _zunit_tap_failure "$@" >> $logfile_text
+  [[ -n $output_html ]] && _zunit_html_failure "$@" >> $logfile_html
 
   if [[ -n $tap ]]; then
     _zunit_tap_failure "$@"
@@ -481,6 +531,16 @@ function _zunit_tap_error() {
 }
 
 ###
+# Output a HTML error message
+###
+_zunit_html_error() {
+  echo "<li class='results--item error visible'>
+    <h6>$name</h6>
+    <pre><code>$message</code></pre>
+  </li>"
+}
+
+###
 # Output a error message
 ###
 function _zunit_error() {
@@ -489,6 +549,7 @@ function _zunit_error() {
   errors=$(( errors + 1 ))
 
   [[ -n $output_text ]] && _zunit_tap_error "$@" >> $logfile_text
+  [[ -n $output_html ]] && _zunit_html_error "$@" >> $logfile_html
 
   if [[ -n $tap ]]; then
     _zunit_tap_error "$@"
@@ -515,6 +576,16 @@ function _zunit_tap_warn() {
 }
 
 ###
+# Output a HTML warning message
+###
+_zunit_html_warn() {
+  echo "<li class='results--item warning visible'>
+    <h6>$name</h6>
+    <span class='results--item_warning'>$message</span>
+  </li>"
+}
+
+###
 # Output a warning message
 ###
 function _zunit_warn() {
@@ -523,6 +594,7 @@ function _zunit_warn() {
   warnings=$(( warnings + 1 ))
 
   [[ -n $output_text ]] && _zunit_tap_warn "$@" >> $logfile_text
+  [[ -n $output_html ]] && _zunit_html_warn "$@" >> $logfile_html
 
   if [[ -n $tap ]]; then
     _zunit_tap_warn "$@"
@@ -547,6 +619,16 @@ function _zunit_tap_skip() {
 }
 
 ###
+# Output a HTML skipped test message
+###
+_zunit_html_skip() {
+  echo "<li class='results--item skipped visible'>
+    <h6>$name</h6>
+    <span class='results--item_skip-reason'>$message</span>
+  </li>"
+}
+
+###
 # Output a skipped test message
 ###
 function _zunit_skip() {
@@ -555,6 +637,7 @@ function _zunit_skip() {
   skipped=$(( skipped + 1 ))
 
   [[ -n $output_text ]] && _zunit_tap_skip "$@" >> $logfile_text
+  [[ -n $output_html ]] && _zunit_html_skip "$@" >> $logfile_html
 
   if [[ -n $tap ]]; then
     _zunit_tap_skip "$@"
@@ -562,7 +645,7 @@ function _zunit_skip() {
   fi
 
   echo "$(color magenta '•') Skipped: ${name}"
-  echo "  $(color gray "# ${message}")"
+  echo "  # ${message}"
 }
 
 ###
@@ -597,6 +680,10 @@ function _zunit_output_results() {
   echo "$(color red '‼') Errors      $errors                      "
   echo "$(color magenta '•') Skipped     $skipped                 "
   echo "$(color yellow '‼') Warnings    $warnings                 "
+  echo
+
+  [[ -n $output_text ]] && echo "TAP report written at $PWD/$logfile_text"
+  [[ -n $output_html ]] && echo "HTML report written at $PWD/$logfile_html"
 }
 
 ###
@@ -877,7 +964,7 @@ function _zunit_parse_yaml() {
   for (i in vname) {if (i > indent) {delete vname[i]}}
       if (length($3) > 0) {
           vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-          printf("local -a %s%s%s; %s%s%s=(\"%s\")\n", "'"$prefix"'",vn, $2,  "'"$prefix"'",vn, $2, $3);
+          printf("%s%s%s=(\"%s\")\n", "'"$prefix"'",vn, $2, $3);
       }
   }' | sed 's/_=/+=/g'
 }
@@ -921,7 +1008,9 @@ directories:
 # Run tests
 ###
 function _zunit_run() {
-  local -a arguments testfiles fail_fast tap output_text allow_risky
+  local -a arguments testfiles
+  local fail_fast tap allow_risky
+  local output_text logfile_text output_html logfile_html
 
   zmodload zsh/datetime
   local start_time=$((EPOCHREALTIME*1000)) end_time
@@ -932,6 +1021,7 @@ function _zunit_run() {
     f=fail_fast -fail-fast=fail_fast \
     t=tap -tap=tap \
     -output-text=output_text \
+    -output-html=output_html \
     -allow-risky=allow_risky
 
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
@@ -949,9 +1039,16 @@ function _zunit_run() {
       echo $(color red 'Output directory must be specified in .zunit.yml')
       exit 1
     fi
+  fi
 
+  if [[ -n $output_text ]]; then
     logfile_text="$zunit_config_directories_output/output.txt"
-    echo 'TAP version 13' >! $logfile_text
+    echo 'TAP version 13' > $logfile_text
+  fi
+
+  if [[ -n $output_html ]]; then
+    logfile_html="$zunit_config_directories_output/output.html"
+    _zunit_html_header > $logfile_html
   fi
 
   if [[ -n $zunit_config_directories_support ]]; then
@@ -997,9 +1094,11 @@ function _zunit_run() {
     _zunit_run_testfile $testfile
   done
 
-  [[ -n $tap ]] && echo "1..$total"
-
   end_time=$((EPOCHREALTIME*1000))
+
+  [[ -n $tap ]] && echo "1..$total"
+  [[ -n $output_text ]] && echo "1..$total" >> $logfile_text
+  [[ -n $output_html ]] && _zunit_html_footer >> $logfile_html
 
   [[ -z $tap ]] && _zunit_output_results && revolver stop
 

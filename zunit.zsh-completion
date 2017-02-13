@@ -15,7 +15,8 @@ _zunit() {
     '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
     '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
     '--output-text[Print results to a text log, in TAP compatible format]' \
-            '--allow-risky[Supress warnings generated for risky tests]'
+    '--output-html[Print results to a HTML page]' \
+    '--allow-risky[Supress warnings generated for risky tests]'
 
   _arguments \
     '1: :_zunit_cmds' \
@@ -36,6 +37,7 @@ _zunit() {
             '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
             '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
             '--output-text[Print results to a text log, in TAP compatible format]' \
+            '--output-html[Print results to a HTML page]' \
             '--allow-risky[Supress warnings generated for risky tests]'
 
           _arguments \
