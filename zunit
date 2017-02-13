@@ -516,7 +516,6 @@ function _zunit_warn() {
   local message="$@"
 
   warnings=$(( warnings + 1 ))
-  passed=$(( passed + 1 ))
 
   [[ -n $output_text ]] && _zunit_tap_warn "$@" >> $logfile_text
 
