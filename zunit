@@ -696,7 +696,6 @@ function _zunit_execute_test() {
   if [[ -n $body ]] && [[ -n $name ]]; then
     # Update the progress indicator
     [[ -z $tap ]] && revolver update "${name}"
-    sleep 0.1
 
     # Make sure we don't already have a function defined
     (( $+functions[__zunit_tmp_test_function] )) && \
@@ -1175,7 +1174,7 @@ function _zunit() {
   # If the version option is passed,
   # output version information and exit
   if [[ -n $version ]]; then
-    echo '0.4.0'
+    echo '0.4.2'
     exit 0
   fi
 
