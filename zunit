@@ -1090,7 +1090,6 @@ function _zunit_run() {
     if [[ -f "$support/bootstrap" ]]; then
       source "$support/bootstrap"
       echo "$(color green '✔') Sourced bootstrap script $support/bootstrap"
-      which crash
     fi
   fi
 
