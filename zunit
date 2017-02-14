@@ -696,7 +696,6 @@ function _zunit_execute_test() {
   if [[ -n $body ]] && [[ -n $name ]]; then
     # Update the progress indicator
     [[ -z $tap ]] && revolver update "${name}"
-    sleep 0.1
 
     # Make sure we don't already have a function defined
     (( $+functions[__zunit_tmp_test_function] )) && \
