@@ -762,8 +762,10 @@ function _zunit_execute_test() {
       return 126
     fi
 
+    autoload is-at-least
+
     # Check if a time limit has been specified
-    if [[ -n $zunit_config_time_limit ]]; then
+    if is-at-least 5.1.0 && [[ -n $zunit_config_time_limit ]]; then
       # Create a wrapper function around the test
       __zunit_async_test_wrapper() {
         local pid
