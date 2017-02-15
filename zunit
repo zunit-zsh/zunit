@@ -122,6 +122,7 @@ function _zunit_assert_in() {
     [[ $i = $value ]] && found=1
   done
 
+
   [[ $found -eq 1 ]] && return 0
 
   echo "'$value' is not in (${(@f)array})"
@@ -155,9 +156,11 @@ function _zunit_assert_exists() {
   # If filepath is relative, prepend the test directory
   if [[ "${pathname:0:1}" != "/" ]]; then
     filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
   fi
 
-  [[ -e $filepath ]] && return 0
+  [[ -e "$filepath" ]] && return 0
 
   echo "'$pathname' does not exist"
   exit 1
@@ -172,9 +175,11 @@ function _zunit_assert_is_file() {
   # If filepath is relative, prepend the test directory
   if [[ "${pathname:0:1}" != "/" ]]; then
     filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
   fi
 
-  [[ -f $filepath ]] && return 0
+  [[ -f "$filepath" ]] && return 0
 
   echo "'$pathname' does not exist or is not a file"
   exit 1
@@ -188,10 +193,12 @@ function _zunit_assert_is_dir() {
 
   # If filepath is relative, prepend the test directory
   if [[ "${pathname:0:1}" != "/" ]]; then
-    filepath="$testdir/${pathname}"
+    filepath="$testdir/$pathname"
+  else
+    filepath="$pathname"
   fi
 
-  [[ -d $filepath ]] && return 0
+  [[ -d "$filepath" ]] && return 0
 
   echo "'$pathname' does not exist or is not a directory"
   exit 1
@@ -206,9 +213,11 @@ function _zunit_assert_is_link() {
   # If filepath is relative, prepend the test directory
   if [[ "${pathname:0:1}" != "/" ]]; then
     filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
   fi
 
-  [[ -h $filepath ]] && return 0
+  [[ -h "$filepath" ]] && return 0
 
   echo "'$pathname' does not exist or is not a symbolic link"
   exit 1
@@ -223,9 +232,11 @@ function _zunit_assert_is_readable() {
   # If filepath is relative, prepend the test directory
   if [[ "${pathname:0:1}" != "/" ]]; then
     filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
   fi
 
-  [[ -r $filepath ]] && return 0
+  [[ -r "$filepath" ]] && return 0
 
   echo "'$pathname' does not exist or is not readable"
   exit 1
@@ -291,14 +302,15 @@ function run() {
     cmd[1]="$testdir/${name}"
   fi
 
-  # Store lines of output in an array
-  IFS=$'\n' lines=($("${cmd[@]}" 2>&1))
+  # Store full output in a variable
+  output=$("${cmd[@]}" 2>&1)
 
   # Get the process exit state
   state="$?"
 
-  # Store the full output in a variable
-  output=${lines[@]}
+  # Store individual lines of output in an array
+  IFS=$'\n'
+  lines=($output)
 
   # Restore $IFS
   IFS=$oldIFS
@@ -313,6 +325,9 @@ function run() {
 function assert() {
   local value=$1 assertion=$2
   local -a comparisons
+
+  IFS=$'\n'
+
   comparisons=(${(@)@:3})
 
   if [[ -z $assertion ]]; then
@@ -334,6 +349,8 @@ function assert() {
   if [[ $state -ne 0 ]]; then
     exit $state
   fi
+
+  IFS=$oldIFS
 }
 
 ###
@@ -745,13 +762,57 @@ function _zunit_execute_test() {
       return 126
     fi
 
-    # Execute the test body, and capture its output
-    output="$(__zunit_tmp_test_function 2>&1)"
+    autoload is-at-least
+
+    # Check if a time limit has been specified
+    if is-at-least 5.1.0 && [[ -n $zunit_config_time_limit ]]; then
+      # Create a wrapper function around the test
+      __zunit_async_test_wrapper() {
+        local pid
+
+        # Get the current timestamp, and the time limit, and use those to
+        # work out the kill time for the sub process
+        integer time_limit=$(( ${zunit_config_time_limit:-30} * 1000 ))
+        integer time=$(( EPOCHREALTIME * 1000 ))
+        integer kill_time=$(( $time + $time_limit ))
+
+        # Launch the test function asynchronously and store its PID
+        __zunit_tmp_test_function &
+        pid=$!
+
+        # While the child process is still running
+        while kill -0 $pid >/dev/null 2>&1; do
+          # Check that the kill time has not yet been reached
+          time=$(( EPOCHREALTIME * 1000 ))
+          if [[ $time -gt $kill_time ]]; then
+            # The kill time has been reached, kill the child process,
+            # and exit the wrapper function
+            kill -9 $pid >/dev/null 2>&1
+            exit 78
+          fi
+        done
+
+        # Use wait to get the exit code from the background process,
+        # and return that so that the test result can be deduced
+        wait $pid
+        return $?
+      }
+
+      # Launch the async wrapper, and capture the output in a variable
+      output="$(__zunit_async_test_wrapper 2>&1)"
+    else
+      # Launch the test, and capture the output in a variable
+      output="$(__zunit_tmp_test_function 2>&1)"
+    fi
 
     # Output the result to the user
     state=$?
     if [[ $state -eq 48 ]]; then
       _zunit_skip $output
+
+      return
+    elif [[ $state -eq 78 ]]; then
+      _zunit_error "Test took too long to run. Terminated after ${zunit_config_time_limit:-30} seconds" $output
 
       return
     elif [[ -z $allow_risky && $state -eq 248 ]]; then
@@ -1185,7 +1246,7 @@ function _zunit() {
   # If the version option is passed,
   # output version information and exit
   if [[ -n $version ]]; then
-    echo '0.4.3'
+    echo '0.5.0'
     exit 0
   fi
 
