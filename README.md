@@ -254,7 +254,23 @@ directories:
   support: tests/_support
 ```
 
-To set up ZUnit for a new project, just run `zunit init` in the project's root directory. This will create the `.zunit.yml` config file and relevant directories, including an example test.
+### Bootstrap script
+
+ZUnit will look in the support directory (`tests/_support` by default) for a file named `bootstrap`. If found, this is sourced prior to any tests being run. This bootstrap script can be used to install software, set environment variables and source programs required for your tests to run.
+
+### Test time limits
+
+ZUnit can enforce a time limit for tests, and will terminate them with an error if they run for longer than this. Just add the `time_limit` key to your `.zunit.yml`.
+
+```yaml
+time_limit: 5 # Will terminate tests after they have run for 5 seconds
+```
+
+> **NOTE:** Due to the way child processes are handled in earlier versions of ZSH, the `time_limit` setting is **ignored** for ZSH versions below **5.1.0**. This is necessary because in versions below 5.1.0, the exit state is never returned from the asynchronous process, which would cause tests to hang indefinitely.
+
+### Setting up a new project
+
+To set up ZUnit for a new project, just run `zunit init` in the project's root directory. This will create the `.zunit.yml` config file and relevant directories, including a bootstrap script and example test.
 
 ### [Travis CI](https://travis-ci.org) config
 
