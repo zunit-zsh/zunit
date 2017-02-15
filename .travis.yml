@@ -2,6 +2,7 @@ addons:
   apt:
     packages:
       zsh
+dist: trusty
 before_script:
 - mkdir .bin
 - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
