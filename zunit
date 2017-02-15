@@ -790,8 +790,9 @@ function _zunit_run_testfile() {
   local testbody testname pattern \
         setup teardown \
         testfile="$1" testdir="$(dirname "$testfile")"
-  local -a lines
-  typeset -A tests
+  local -a lines tests test_names
+  tests=()
+  test_names=()
 
   # Update status message
   [[ -z $tap ]] && revolver update "Loading tests from $testfile"
@@ -800,12 +801,16 @@ function _zunit_run_testfile() {
   pattern='^ *@test  *([^ ].*)  *\{ *(.*)$'
 
   # Loop through each of the lines in the file
+  local oldIFS=$IFS
   IFS=$'\n' lines=($(cat $testfile))
+  IFS=$oldIFS
   for line in $lines[@]; do
     # Match current line against pattern
     if [[ "$line" =~ $pattern ]]; then
       # Get test name from matches
-      testname=${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}
+      testname="${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}"
+      test_names=($test_names $testname)
+      tests[${#test_names}]=''
     elif [[ "$line" =~ '^@setup([ ])?\{$' ]]; then
       setup=''
       parsing_setup=true
@@ -818,17 +823,17 @@ function _zunit_run_testfile() {
       parsing_teardown=''
     else
       if [[ -n $testname ]]; then
-        tests[$testname]+="$line\n"
+        tests[${#test_names}]+="$line"$'\n'
         continue
       fi
 
       if [[ -n $parsing_setup ]]; then
-        setup+="$line\n"
+        setup+="$line"$'\n'
         continue
       fi
 
       if [[ -n $parsing_teardown ]]; then
-        teardown+="$line\n"
+        teardown+="$line"$'\n'
         continue
       fi
     fi
@@ -891,7 +896,13 @@ function _zunit_run_testfile() {
   fi
 
   # Loop through each of the tests and execute it
-  for name body ("${(@kv)tests}") _zunit_execute_test "$name" "$body"
+  integer i=1
+  local name body
+  for name in "${test_names[@]}"; do
+    body="${tests[$i]}"
+    _zunit_execute_test "$name" "$body"
+    i=$(( i + 1 ))
+  done
 
   (( $+functions[__zunit_test_setup] )) && unfunction __zunit_test_setup
   (( $+functions[__zunit_test_teardown] )) && unfunction __zunit_test_teardown
@@ -1174,7 +1185,7 @@ function _zunit() {
   # If the version option is passed,
   # output version information and exit
   if [[ -n $version ]]; then
-    echo '0.4.2'
+    echo '0.4.3'
     exit 0
   fi
 
