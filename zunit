@@ -301,14 +301,15 @@ function run() {
     cmd[1]="$testdir/${name}"
   fi
 
-  # Store lines of output in an array
-  IFS=$'\n' lines=($("${cmd[@]}" 2>&1))
+  # Store full output in a variable
+  output=$("${cmd[@]}" 2>&1)
 
   # Get the process exit state
   state="$?"
 
-  # Store the full output in a variable
-  output=${lines[@]}
+  # Store individual lines of output in an array
+  IFS=$'\n'
+  lines=($output)
 
   # Restore $IFS
   IFS=$oldIFS
