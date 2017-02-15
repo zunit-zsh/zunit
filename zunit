@@ -762,13 +762,57 @@ function _zunit_execute_test() {
       return 126
     fi
 
-    # Execute the test body, and capture its output
-    output="$(__zunit_tmp_test_function 2>&1)"
+    autoload is-at-least
+
+    # Check if a time limit has been specified
+    if is-at-least 5.1.0 && [[ -n $zunit_config_time_limit ]]; then
+      # Create a wrapper function around the test
+      __zunit_async_test_wrapper() {
+        local pid
+
+        # Get the current timestamp, and the time limit, and use those to
+        # work out the kill time for the sub process
+        integer time_limit=$(( ${zunit_config_time_limit:-30} * 1000 ))
+        integer time=$(( EPOCHREALTIME * 1000 ))
+        integer kill_time=$(( $time + $time_limit ))
+
+        # Launch the test function asynchronously and store its PID
+        __zunit_tmp_test_function &
+        pid=$!
+
+        # While the child process is still running
+        while kill -0 $pid >/dev/null 2>&1; do
+          # Check that the kill time has not yet been reached
+          time=$(( EPOCHREALTIME * 1000 ))
+          if [[ $time -gt $kill_time ]]; then
+            # The kill time has been reached, kill the child process,
+            # and exit the wrapper function
+            kill -9 $pid >/dev/null 2>&1
+            exit 78
+          fi
+        done
+
+        # Use wait to get the exit code from the background process,
+        # and return that so that the test result can be deduced
+        wait $pid
+        return $?
+      }
+
+      # Launch the async wrapper, and capture the output in a variable
+      output="$(__zunit_async_test_wrapper 2>&1)"
+    else
+      # Launch the test, and capture the output in a variable
+      output="$(__zunit_tmp_test_function 2>&1)"
+    fi
 
     # Output the result to the user
     state=$?
     if [[ $state -eq 48 ]]; then
       _zunit_skip $output
+
+      return
+    elif [[ $state -eq 78 ]]; then
+      _zunit_error "Test took too long to run. Terminated after ${zunit_config_time_limit:-30} seconds" $output
 
       return
     elif [[ -z $allow_risky && $state -eq 248 ]]; then
