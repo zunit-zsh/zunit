@@ -1,16 +1,20 @@
 addons:
   apt:
     packages:
-      zsh
+      - zsh
+      - ncurses-dev
+      - autoconf
+      - yodl
+      - man
 dist: trusty
 matrix:
   include:
-  #- env: ZVM_VERSION='4.3.12'
-  #- env: ZVM_VERSION='4.3.17'
-  - env: ZVM_VERSION='5.0.8'
-  - env: ZVM_VERSION='5.1.1'
-  - env: ZVM_VERSION='5.2'
-  - env: ZVM_VERSION='5.3.1'
+    - env: ZVM_VERSION='4.3.12'
+    - env: ZVM_VERSION='4.3.17'
+    - env: ZVM_VERSION='5.0.8'
+    - env: ZVM_VERSION='5.1.1'
+    - env: ZVM_VERSION='5.2'
+    - env: ZVM_VERSION='5.3.1'
 before_script:
 - mkdir .bin
 - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
@@ -18,7 +22,6 @@ before_script:
 - curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm > .bin/zvm
 - curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm-shell-integration.zsh > zvm-shell-integration.zsh
 - chmod u+x .bin/{color,revolver,zvm}
-- export PATH="$PWD/.bin:$PATH"
+- export PATH="$HOME/.zvm/bin:$PWD/.bin:$PATH"
 - zvm use ${ZVM_VERSION}
-script: zsh -c "source zvm-shell-integration.zsh && zsh -c \"echo \$ZSH_VERSION\" && ./zunit"
-after_failure: cat ~/.zvm/log/*.log
+script: ./zunit
