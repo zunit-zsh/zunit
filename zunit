@@ -1112,6 +1112,12 @@ function _zunit_run() {
   local fail_fast tap allow_risky
   local output_text logfile_text output_html logfile_html
 
+  # Print version information
+  echo $(color yellow 'Launching ZUnit')
+  echo "ZUnit: $(zunit --version)"
+  echo "ZSH:   $(zsh --version)"
+  echo
+
   zmodload zsh/datetime
   local start_time=$((EPOCHREALTIME*1000)) end_time
 
