@@ -1214,7 +1214,7 @@ function _zunit_run() {
 # Output the version number
 ###
 function _zunit_version() {
-  echo '0.5.0'
+  echo '0.5.1'
 }
 
 ###
