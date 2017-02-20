@@ -1114,7 +1114,7 @@ function _zunit_run() {
 
   # Print version information
   echo $(color yellow 'Launching ZUnit')
-  echo "ZUnit: $(zunit --version)"
+  echo "ZUnit: $(_zunit_version)"
   echo "ZSH:   $(zsh --version)"
   echo
 
@@ -1211,6 +1211,13 @@ function _zunit_run() {
 }
 
 ###
+# Output the version number
+###
+function _zunit_version() {
+  echo '0.5.0'
+}
+
+###
 # The main zunit process
 ###
 function _zunit() {
@@ -1252,7 +1259,7 @@ function _zunit() {
   # If the version option is passed,
   # output version information and exit
   if [[ -n $version ]]; then
-    echo '0.5.0'
+    _zunit_version
     exit 0
   fi
 
