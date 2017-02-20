@@ -14,6 +14,14 @@ ZUnit is a powerful unit testing framework for ZSH
 zulu install zunit
 ```
 
+### zplug
+
+```sh
+zplug "molovo/zunit", \
+  as:command, \
+  use:zunit
+```
+
 ### Manual
 
 ```sh
