@@ -148,6 +148,78 @@ function _zunit_assert_not_in() {
 }
 
 ###
+# Assert that a value is a key in a hash
+###
+function _zunit_assert_is_key_in() {
+  local i found=0 value=$1
+  local -A hash
+  hash=(${(@)@:2})
+
+  for k v in ${(@kv)hash}; do
+    [[ $k = $value ]] && found=1
+  done
+
+  [[ $found -eq 1 ]] && return 0
+
+  echo "'$value' is not a key in (${(@kv)hash})"
+  exit 1
+}
+
+###
+# Assert that a value is not a key in a hash
+###
+function _zunit_assert_is_not_key_in() {
+  local i found=0 value=$1
+  local -A hash
+  hash=(${(@)@:2})
+
+  for k v in ${(@kv)hash}; do
+    [[ $k = $value ]] && found=1
+  done
+
+  [[ $found -eq 0 ]] && return 0
+
+  echo "'$value' is a key in (${(@kv)hash})"
+  exit 1
+}
+
+###
+# Assert that a value is a value in a hash
+###
+function _zunit_assert_is_value_in() {
+  local i found=0 value=$1
+  local -A hash
+  hash=(${(@)@:2})
+
+  for k v in ${(@kv)hash}; do
+    [[ $v = $value ]] && found=1
+  done
+
+  [[ $found -eq 1 ]] && return 0
+
+  echo "'$value' is not a value in (${(@kv)hash})"
+  exit 1
+}
+
+###
+# Assert that a value is not a value in a hash
+###
+function _zunit_assert_is_not_value_in() {
+  local i found=0 value=$1
+  local -A hash
+  hash=(${(@)@:2})
+
+  for k v in ${(@kv)hash}; do
+    [[ $v = $value ]] && found=1
+  done
+
+  [[ $found -eq 0 ]] && return 0
+
+  echo "'$value' is a value in (${(@kv)hash})"
+  exit 1
+}
+
+###
 # Assert the a path exists
 ###
 function _zunit_assert_exists() {
@@ -239,6 +311,44 @@ function _zunit_assert_is_readable() {
   [[ -r "$filepath" ]] && return 0
 
   echo "'$pathname' does not exist or is not readable"
+  exit 1
+}
+
+###
+# Assert the a path exists and is writable
+###
+function _zunit_assert_is_writable() {
+  local pathname=$1 filepath
+
+  # If filepath is relative, prepend the test directory
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
+  fi
+
+  [[ -w "$filepath" ]] && return 0
+
+  echo "'$pathname' does not exist or is not writable"
+  exit 1
+}
+
+###
+# Assert the a path exists and is executable
+###
+function _zunit_assert_is_executable() {
+  local pathname=$1 filepath
+
+  # If filepath is relative, prepend the test directory
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
+  fi
+
+  [[ -x "$filepath" ]] && return 0
+
+  echo "'$pathname' does not exist or is not executable"
   exit 1
 }
 
@@ -1112,12 +1222,6 @@ function _zunit_run() {
   local fail_fast tap allow_risky
   local output_text logfile_text output_html logfile_html
 
-  # Print version information
-  echo $(color yellow 'Launching ZUnit')
-  echo "ZUnit: $(_zunit_version)"
-  echo "ZSH:   $(zsh --version)"
-  echo
-
   zmodload zsh/datetime
   local start_time=$((EPOCHREALTIME*1000)) end_time
 
@@ -1133,6 +1237,14 @@ function _zunit_run() {
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
     tap=1
     echo 'TAP version 13'
+  fi
+
+  if [[ -z $tap ]]; then
+    # Print version information
+    echo $(color yellow 'Launching ZUnit')
+    echo "ZUnit: $(_zunit_version)"
+    echo "ZSH:   $(zsh --version)"
+    echo
   fi
 
   if [[ -n $output_text ]]; then
@@ -1214,7 +1326,7 @@ function _zunit_run() {
 # Output the version number
 ###
 function _zunit_version() {
-  echo '0.5.1'
+  echo '0.5.2'
 }
 
 ###

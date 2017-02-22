@@ -1,0 +1,23 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_not_key_in success' {
+  typeset -A assoc; assoc=(
+    'x' 1
+    'y' 2
+    'z' 3
+  )
+  run assert 'a' is_not_key_in ${(@kv)assoc}
+  assert $state equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test _zunit_assert_is_not_key_in failure' {
+  typeset -A assoc; assoc=(
+    'a' 1
+    'b' 2
+    'c' 3
+  )
+  run assert 'a' is_not_key_in ${(@kv)assoc}
+  assert $state equals 1
+  assert "$output" same_as "'a' is a key in (a 1 b 2 c 3)"
+}

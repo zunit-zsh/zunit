@@ -137,6 +137,58 @@ Asserts that a value is not included in the comparison array.
 assert 'a' not_in 'x' 'y' 'z'
 ```
 
+#### is_key_in
+
+Asserts that a value is a key in a hash.
+
+```sh
+typeset -A hash; hash=(
+  'a' 1
+  'b' 2
+  'c' 3
+)
+assert 'a' is_key_in ${(@kv)hash}
+```
+
+#### is_not_key_in
+
+Asserts that a value is not a key in a hash.
+
+```sh
+typeset -A hash; hash=(
+  'a' 1
+  'b' 2
+  'c' 3
+)
+assert 'x' is_not_key_in ${(@kv)hash}
+```
+
+#### is_value_in
+
+Asserts that a value is a value in a hash.
+
+```sh
+typeset -A hash; hash=(
+  'a' 1
+  'b' 2
+  'c' 3
+)
+assert 1 is_value_in ${(@kv)hash}
+```
+
+#### is_not_value_in
+
+Asserts that a value is not a value in a hash.
+
+```sh
+typeset -A hash; hash=(
+  'a' 1
+  'b' 2
+  'c' 3
+)
+assert 4 is_not_value_in ${(@kv)hash}
+```
+
 #### exists
 
 Asserts that the given path exists
@@ -171,10 +223,26 @@ assert /path/to/link is_link
 
 #### is_readable
 
-Asserts that the given path exists and is a symbolic readable
+Asserts that the given path exists and is readable
 
 ```sh
 assert /path/to/file is_readable
+```
+
+#### is_writable
+
+Asserts that the given path exists and is writable
+
+```sh
+assert /path/to/file is_writable
+```
+
+#### is_executable
+
+Asserts that the given path exists and is executable
+
+```sh
+assert /path/to/file is_executable
 ```
 
 ### Loading scripts
