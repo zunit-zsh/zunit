@@ -25,3 +25,5 @@ before_script:
 - export PATH="$HOME/.zvm/bin:$PWD/.bin:$PATH"
 - zvm use ${ZVM_VERSION}
 script: ./zunit
+notifications:
+  email: false
