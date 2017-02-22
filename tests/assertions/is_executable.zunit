@@ -1,0 +1,27 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_executable success' {
+  # Make file executable before checking it
+  chmod 744 "$testdir/is_executable.zunit"
+
+  run assert './is_executable.zunit' is_executable
+
+  # Change permissions back before the test makes its assertions
+  chmod 644 "$testdir/is_executable.zunit"
+
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_is_executable failure' {
+  # Make file unexecutable before checking it
+  chmod 000 "$testdir/../_support/non-executable-file"
+
+  run assert '../_support/non-executable-file' is_executable
+
+  # Change permissions back before the test makes its assertions
+  chmod 644 "$testdir/../_support/non-executable-file"
+
+  assert $state equals 1
+  assert $output same_as "'../_support/non-executable-file' does not exist or is not executable"
+}

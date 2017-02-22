@@ -223,10 +223,26 @@ assert /path/to/link is_link
 
 #### is_readable
 
-Asserts that the given path exists and is a symbolic readable
+Asserts that the given path exists and is readable
 
 ```sh
 assert /path/to/file is_readable
+```
+
+#### is_writable
+
+Asserts that the given path exists and is writable
+
+```sh
+assert /path/to/file is_writable
+```
+
+#### is_executable
+
+Asserts that the given path exists and is executable
+
+```sh
+assert /path/to/file is_executable
 ```
 
 ### Loading scripts

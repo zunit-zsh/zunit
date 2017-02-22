@@ -1,0 +1,20 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_is_writable success' {
+  run assert './is_writable.zunit' is_writable
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_is_writable failure' {
+  # Make file unwritable before checking it
+  chmod 000 "$testdir/../_support/non-writable-file"
+
+  run assert '../_support/non-writable-file' is_writable
+
+  # Change permissions back before the test makes its assertions
+  chmod 644 "$testdir/../_support/non-writable-file"
+
+  assert $state equals 1
+  assert $output same_as "'../_support/non-writable-file' does not exist or is not writable"
+}
