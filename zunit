@@ -184,6 +184,42 @@ function _zunit_assert_is_not_key_in() {
 }
 
 ###
+# Assert that a value is a value in a hash
+###
+function _zunit_assert_is_value_in() {
+  local i found=0 value=$1
+  local -A hash
+  hash=(${(@)@:2})
+
+  for k v in ${(@kv)hash}; do
+    [[ $v = $value ]] && found=1
+  done
+
+  [[ $found -eq 1 ]] && return 0
+
+  echo "'$value' is not a value in (${(@kv)hash})"
+  exit 1
+}
+
+###
+# Assert that a value is not a value in a hash
+###
+function _zunit_assert_is_not_value_in() {
+  local i found=0 value=$1
+  local -A hash
+  hash=(${(@)@:2})
+
+  for k v in ${(@kv)hash}; do
+    [[ $v = $value ]] && found=1
+  done
+
+  [[ $found -eq 0 ]] && return 0
+
+  echo "'$value' is a value in (${(@kv)hash})"
+  exit 1
+}
+
+###
 # Assert the a path exists
 ###
 function _zunit_assert_exists() {
