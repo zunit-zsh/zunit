@@ -137,6 +137,19 @@ Asserts that a value is not included in the comparison array.
 assert 'a' not_in 'x' 'y' 'z'
 ```
 
+#### is_key_in
+
+Asserts that a value is a key in a hash.
+
+```sh
+typeset -A hash; hash=(
+  'a' 1
+  'b' 2
+  'c' 3
+)
+assert 'a' is_key_in ${(@kv)hash}
+```
+
 #### exists
 
 Asserts that the given path exists
