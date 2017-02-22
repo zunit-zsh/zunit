@@ -1112,12 +1112,6 @@ function _zunit_run() {
   local fail_fast tap allow_risky
   local output_text logfile_text output_html logfile_html
 
-  # Print version information
-  echo $(color yellow 'Launching ZUnit')
-  echo "ZUnit: $(_zunit_version)"
-  echo "ZSH:   $(zsh --version)"
-  echo
-
   zmodload zsh/datetime
   local start_time=$((EPOCHREALTIME*1000)) end_time
 
@@ -1133,6 +1127,14 @@ function _zunit_run() {
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
     tap=1
     echo 'TAP version 13'
+  fi
+
+  if [[ -z $tap ]]; then
+    # Print version information
+    echo $(color yellow 'Launching ZUnit')
+    echo "ZUnit: $(_zunit_version)"
+    echo "ZSH:   $(zsh --version)"
+    echo
   fi
 
   if [[ -n $output_text ]]; then
