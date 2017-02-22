@@ -150,6 +150,19 @@ typeset -A hash; hash=(
 assert 'a' is_key_in ${(@kv)hash}
 ```
 
+#### is_not_key_in
+
+Asserts that a value is not a key in a hash.
+
+```sh
+typeset -A hash; hash=(
+  'a' 1
+  'b' 2
+  'c' 3
+)
+assert 'x' is_not_key_in ${(@kv)hash}
+```
+
 #### exists
 
 Asserts that the given path exists
