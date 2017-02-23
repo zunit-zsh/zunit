@@ -42,22 +42,26 @@ function _zunit_init() {
 
   zparseopts -D t=with_travis -travis=with_travis
 
+  # The contents of .zunit.yml
   local yaml="tap: false
 directories:
   tests: tests
   output: tests/_output
   support: tests/_support"
 
+  # An example test file
   local example="#!/usr/bin/env zunit
 
 @test 'Example' {
   assert "'"true"'" same_as "'"false"'"
 }"
 
+  # An empty bootstrap script
   local bootstrap="#!/usr/bin/env zsh
 
 # Write your bootstrap code here"
 
+  # An example .travis.yml config
   local travis_yml='addons:
     apt:
       packages:
@@ -71,30 +75,40 @@ directories:
   - export PATH="$PWD/.bin:$PATH"
   script: zunit'
 
+  # Check that a config file doesn't already exist so that
+  # we don't overwrite it
   if [[ -f "$PWD/.zunit.yml" ]]; then
     echo $(color red "Zunit config file already exists at $PWD/.zunit.yml") >&2
     exit 1
   else
+    # Write the contents to the config file
     echo "$yaml" > "$PWD/.zunit.yml"
   fi
 
+  # Check that the tests directory doesn't already exist so that
+  # we don't overwrite it
   if [[ -d "$PWD/tests" ]]; then
     echo $(color red "Directory already exists at $PWD/tests") >&2
     exit 1
   else
+    # Create the directory structure for tests
     mkdir -p tests/_{output,support}
     touch tests/_{output,support}/.gitkeep
 
+    # Save the bootstrap script and example test
     echo "$bootstrap" > "$PWD/tests/_support/bootstrap"
     echo "$example" > "$PWD/tests/example.zunit"
   fi
 
-    #statements
+  # If travis config has been requested
   if [[ -n $with_travis ]]; then
+    # Check that a travis config doesn't already exist so that
+    # we don't overwrite it
     if [[ -f "$PWD/.travis.yml" ]]; then
       echo $(color red "Travis config already exists at $PWD/.travis.yml") >&2
       exit 1
     else
+      # Write the contents to the config file
       echo "$travis_yml" > "$PWD/.travis.yml"
     fi
   fi

@@ -71,29 +71,41 @@ function _zunit_execute_test() {
     (( $+functions[__zunit_tmp_test_function] )) && \
       unfunction __zunit_tmp_test_function
 
+    # Create a wrapper function with our test body inside it
     func="function __zunit_tmp_test_function() {
+      # Exit on errors. We do this so that execution stops immediately,
+      # and the error will be reported back to the test runner
       setopt ERR_EXIT
-      integer state
+
+      # Create some local variables to store test state in
       integer _zunit_assertion_count=0
+      integer state
       local output
       typeset -a lines
 
+      # If a setup function is defined, run it now
       if (( $+functions[__zunit_test_setup] )); then
         __zunit_test_setup >/dev/null 2>&1
       fi
 
+      # The test body is printed here, so when we eval the wrapper
+      # function it will be read as part of the body of this function
       ${body}
 
+      # If a teardown function is defined, run it now
       if (( $+functions[__zunit_test_teardown] )); then
         __zunit_test_teardown >/dev/null 2>&1
       fi
 
+      # Check the assertion count, and if it is 0, return
+      # the warning exit code
       [[ \$_zunit_assertion_count -gt 0 ]] || return 248
     }"
 
     # Quietly eval the body into a variable as a first test
     output=$(eval "$(echo "$func")" 2>&1)
 
+    # Increment the test count
     total=$(( total + 1 ))
 
     # Check the status of the eval, and output any errors
@@ -115,11 +127,13 @@ function _zunit_execute_test() {
       return 126
     fi
 
-    autoload is-at-least
 
-    # Check if a time limit has been specified
+    # Check if a time limit has been specified. We only do this if
+    # the ZSH version is at least 5.1.0, since older versions of ZSH
+    # are unable to handle asynchronous processes in the way we need
+    autoload is-at-least
     if is-at-least 5.1.0 && [[ -n $zunit_config_time_limit ]]; then
-      # Create a wrapper function around the test
+      # Create another wrapper function around the test
       __zunit_async_test_wrapper() {
         local pid
 
@@ -232,20 +246,27 @@ function _zunit_run_testfile() {
       teardown=''
       parsing_teardown=true
     elif [[ "$line" = '}' ]]; then
+      # We've hit a closing brace as the only character on a line,
+      # therefore we are at the end of either a test or a setup or teardown
+      # function. We'll just clear all three here rather than work out which.
       testname=''
       parsing_setup=''
       parsing_teardown=''
     else
+      # A test name is set, so we are parsing a test. Add the
+      # current line to the function body.
       if [[ -n $testname ]]; then
         tests[${#test_names}]+="$line"$'\n'
         continue
       fi
 
+      # Add the current line to the body of the setup function
       if [[ -n $parsing_setup ]]; then
         setup+="$line"$'\n'
         continue
       fi
 
+      # Add the current line to the body of the teardown function
       if [[ -n $parsing_teardown ]]; then
         teardown+="$line"$'\n'
         continue
@@ -253,7 +274,9 @@ function _zunit_run_testfile() {
     fi
   done
 
+  # A setup function has been defined
   if [[ -n $setup ]]; then
+    # Print the body into a function declaration
     setupfunc="function __zunit_test_setup() {
       ${setup}
     }"
@@ -281,7 +304,9 @@ function _zunit_run_testfile() {
     fi
   fi
 
+  # A teardown function has been defined
   if [[ -n $teardown ]]; then
+    # Print the body into a function declaration
     teardownfunc="function __zunit_test_teardown() {
       ${teardown}
     }"
@@ -318,6 +343,7 @@ function _zunit_run_testfile() {
     i=$(( i + 1 ))
   done
 
+  # Remove the temporary functions
   (( $+functions[__zunit_test_setup] )) && unfunction __zunit_test_setup
   (( $+functions[__zunit_test_teardown] )) && unfunction __zunit_test_teardown
   (( $+functions[__zunit_tmp_test_function] )) && unfunction __zunit_tmp_test_function
@@ -380,6 +406,7 @@ function _zunit_run() {
   local fail_fast tap allow_risky
   local output_text logfile_text output_html logfile_html
 
+  # Load the datetime module, and record the start time
   zmodload zsh/datetime
   local start_time=$((EPOCHREALTIME*1000)) end_time
 
@@ -392,11 +419,16 @@ function _zunit_run() {
     -output-html=output_html \
     -allow-risky=allow_risky
 
+  # TAP output is enabled
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
+    # Set the $tap variable, so we can check it later
     tap=1
+
+    # Print the TAP header
     echo 'TAP version 13'
   fi
 
+  # TAP output is disabled
   if [[ -z $tap ]]; then
     # Print version information
     echo $(color yellow 'Launching ZUnit')
@@ -405,12 +437,17 @@ function _zunit_run() {
     echo
   fi
 
-  if [[ -n $output_text ]]; then
+  # Text output has been requested
+  if [[ -n $output_text || -n $output_html ]]; then
+    # Make sure we have a config file, otherwise we can't determine
+    # which directory to write logs to
     if [[ $missing_config -eq 1 ]]; then
       echo $(color red '.zunit.yml could not be found. Run `zulu init`')
       exit 1
     fi
 
+    # If the output directory still isn't defined, it must not
+    # be defined in the config file
     if [[ -z $zunit_config_directories_output ]]; then
       echo $(color red 'Output directory must be specified in .zunit.yml')
       exit 1
@@ -418,22 +455,31 @@ function _zunit_run() {
   fi
 
   if [[ -n $output_text ]]; then
+    # Set the log filepath
     logfile_text="$zunit_config_directories_output/output.txt"
+
+    # Print the header to the logfile
     echo 'TAP version 13' > $logfile_text
   fi
 
   if [[ -n $output_html ]]; then
+    # Set the log filepath
     logfile_html="$zunit_config_directories_output/output.html"
+
+    # Print the header to the logfile
     _zunit_html_header > $logfile_html
   fi
 
   if [[ -n $zunit_config_directories_support ]]; then
+    # Check that the support directory exists
     local support="$zunit_config_directories_support"
     if [[ ! -d $support ]]; then
       echo $(color red "Support directory at $support is missing")
       exit 1
     fi
 
+    # Look for a bootstrap script in the support directory,
+    # and run it if it is available
     if [[ -f "$support/bootstrap" ]]; then
       source "$support/bootstrap"
       echo "$(color green '✔') Sourced bootstrap script $support/bootstrap"
@@ -446,10 +492,13 @@ function _zunit_run() {
   # Start the progress indicator
   [[ -z $tap ]] && revolver start 'Loading tests'
 
-  # If no arguments are passed, use the current directory
+  # If no arguments are passed, try to work out where the tests are
   if [[ ${#arguments} -eq 0 ]]; then
+    # Check for a path defined in .zunit.yml
     if [[ -n $zunit_config_directories_tests ]]; then
       arguments=("$zunit_config_directories_tests")
+
+    # Fall back to the directory 'tests' by default
     else
       arguments=("tests")
     fi
@@ -471,11 +520,17 @@ function _zunit_run() {
 
   end_time=$((EPOCHREALTIME*1000))
 
+  # Print report footers
   [[ -n $tap ]] && echo "1..$total"
   [[ -n $output_text ]] && echo "1..$total" >> $logfile_text
   [[ -n $output_html ]] && _zunit_html_footer >> $logfile_html
 
+  # Output results to screen and kill the progress indicator
   [[ -z $tap ]] && _zunit_output_results && revolver stop
 
+  # If the total of ($passed + $skipped) is not equal to the
+  # total, then there must have been failures, errors or warnings,
+  # in which case this assertion will return the correct exit code
+  # for the test run as a whole
   [[ $(( $passed + $skipped )) -eq $total ]]
 }

@@ -31,7 +31,8 @@ function load() {
     return 0
   fi
 
-  # Output an error message to the user
+  # We couldn't find the file, so output an error message to the user
+  # and fail the test
   echo "File $filename does not exist" >&2
   exit 1
 }
@@ -40,14 +41,17 @@ function load() {
 # Run an external command and capture its output and exit status
 ###
 function run() {
-  # Stop the shell from exiting on error temporarily
+  # Within tests, the shell is set to exit immediately when errors
+  # occur. Since we want to capture the exit code of the command
+  # we're running, we stop the shell from exiting on error temporarily
   unsetopt ERR_EXIT
 
   # Preserve current $IFS
   local oldIFS=$IFS name
   local -a cmd lines
 
-  # Grab the first argument
+  # Store each word of the command in an array, and grab the first
+  # argument which is the command name
   cmd=(${@[@]})
   name="${cmd[1]}"
 
@@ -82,30 +86,41 @@ function assert() {
   local value=$1 assertion=$2
   local -a comparisons
 
+  # Preserve current $IFS
+  local oldIFS=$IFS
   IFS=$'\n'
 
+  # Store all comparison values in an array
   comparisons=(${(@)@:3})
 
+  # If no assertion is passed, then use the first value, as it
+  # could be that the value is simply empty
   if [[ -z $assertion ]]; then
     assertion=$value
     value=""
   fi
 
+  # Check that the requested assertion method exists
   if (( ! $+functions[_zunit_assert_${assertion}] )); then
     echo "$(color red "Assertion $assertion does not exist")"
     exit 127
   fi
 
+  # Increment the assertion count
   _zunit_assertion_count=$(( _zunit_assertion_count + 1 ))
 
+  # Run the assertion
   "_zunit_assert_${assertion}" $value ${(@f)comparisons[@]}
 
   local state=$?
 
+  # If the assertion failed, then return that exit code to the
+  # test, which will stop its execution and mark it as failed
   if [[ $state -ne 0 ]]; then
     exit $state
   fi
 
+  # Reset $IFS
   IFS=$oldIFS
 }
 
