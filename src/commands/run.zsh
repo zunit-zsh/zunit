@@ -216,8 +216,9 @@ function _zunit_encode_test_name() {
 ###
 function _zunit_run_testfile() {
   local testbody testname pattern \
-        setup teardown \
-        testfile="$1" testdir="$(dirname "$testfile")"
+        setup teardown
+  local -a bits; bits=("${(s/@/)1}")
+  local testfile="${bits[1]}" test_to_run="${bits[2]}" testdir="$(dirname "$testfile")"
   local -a lines tests test_names
   tests=()
   test_names=()
@@ -237,6 +238,16 @@ function _zunit_run_testfile() {
     if [[ "$line" =~ $pattern ]]; then
       # Get test name from matches
       testname="${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}"
+
+      # If a test name has been passed to the CLI, don't parse this test
+      # unless it matches the name passed
+      if [[ -n $test_to_run && $testname != $test_to_run ]]; then
+        testname=''
+        continue
+      fi
+
+      # Store the test name and body in the arrays so we have somewhere to
+      # store the test body
       test_names=($test_names $testname)
       tests[${#test_names}]=''
     elif [[ "$line" =~ '^@setup([ ])?\{$' ]]; then
@@ -353,7 +364,8 @@ function _zunit_run_testfile() {
 # Parse a list of arguments
 ###
 function _zunit_parse_argument() {
-  local argument="$1"
+  local -a bits; bits=("${(s/@/)1}")
+  local argument="$bits[1]" test_name="$bits[2]"
 
   # If the argument begins with an underscore, then it
   # should not be run, so we skip it
@@ -380,7 +392,7 @@ function _zunit_parse_argument() {
     # Check for the zunit shebang
     if [[ $line = "#!/usr/bin/env zunit" ]]; then
       # Add it to the array
-      testfiles[(( ${#testfiles} + 1 ))]=($argument)
+      testfiles[(( ${#testfiles} + 1 ))]=("$argument${test_name+"@$test_name"}")
       return
     fi
 
