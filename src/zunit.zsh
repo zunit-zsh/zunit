@@ -23,6 +23,7 @@ function _zunit_usage() {
   echo "      --output-text  Print results to a text log, in TAP compatible format"
   echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
+  echo "      --coverage     Enable calculation of code coverage"
 }
 
 ###
@@ -121,5 +122,3 @@ function _zunit() {
       ;;
   esac
 }
-
-_zunit "$@"

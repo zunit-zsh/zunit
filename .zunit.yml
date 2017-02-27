@@ -4,3 +4,6 @@ directories:
   output: tests/_output
   support: tests/_support
 time_limit: 15
+coverage:
+  include:
+    - src/**/*.zsh

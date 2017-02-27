@@ -17,6 +17,7 @@ function _zunit_run_usage() {
   echo "      --output-text  Print results to a text log, in TAP compatible format"
   echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
+  echo "      --coverage     Enable calculation of code coverage"
 }
 
 ###
@@ -127,6 +128,9 @@ function _zunit_execute_test() {
       return 126
     fi
 
+    if [[ -n $coverage ]]; then
+      _zunit_coverage_start
+    fi
 
     # Check if a time limit has been specified. We only do this if
     # the ZSH version is at least 5.1.0, since older versions of ZSH
@@ -174,6 +178,11 @@ function _zunit_execute_test() {
 
     # Output the result to the user
     state=$?
+
+    if [[ -n $coverage ]]; then
+      _zunit_coverage_end
+    fi
+
     if [[ $state -eq 48 ]]; then
       _zunit_skip $output
 
@@ -204,6 +213,8 @@ function _zunit_execute_test() {
 function _zunit_encode_test_name() {
   echo "$1" | tr A-Z a-z \
             | tr _ ' ' \
+            | tr / ' ' \
+            | tr . ' ' \
             | tr - ' ' \
             | tr -s ' ' \
             | sed 's/\- /-/' \
@@ -415,7 +426,7 @@ function _zunit_parse_argument() {
 ###
 function _zunit_run() {
   local -a arguments testfiles
-  local fail_fast tap allow_risky
+  local fail_fast tap allow_risky coverage
   local output_text logfile_text output_html logfile_html
 
   # Load the datetime module, and record the start time
@@ -429,7 +440,8 @@ function _zunit_run() {
     t=tap -tap=tap \
     -output-text=output_text \
     -output-html=output_html \
-    -allow-risky=allow_risky
+    -allow-risky=allow_risky \
+    -coverage=coverage
 
   # TAP output is enabled
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
@@ -496,6 +508,10 @@ function _zunit_run() {
       source "$support/bootstrap"
       echo "$(color green '✔') Sourced bootstrap script $support/bootstrap"
     fi
+  fi
+
+  if [[ -n $coverage ]]; then
+    _zunit_coverage_build_file_list
   fi
 
   arguments=("$@")
