@@ -48,7 +48,7 @@ function run() {
 
   # Preserve current $IFS
   local oldIFS=$IFS name
-  local -a cmd lines
+  local -a cmd
 
   # Store each word of the command in an array, and grab the first
   # argument which is the command name
