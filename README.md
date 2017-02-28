@@ -373,8 +373,12 @@ zunit
 # Runs all test files in ./other_tests
 zunit other_tests
 
-# Runs all tests in the file ./tests/a-test-file
-zunit tests/a-test-file
+# Runs all tests in the file ./tests/a-test-file.zunit
+zunit tests/a-test-file.zunit
+
+# Runs a single test named 'The name of the test' in the file
+# ./tests/a-test-file.zunit
+zunit tests/a-test-file.zunit@'The name of the test'
 
 # Runs all tests, and exists immediately after the first failure
 zunit --fail-fast
