@@ -70,7 +70,7 @@ function run() {
 
   # Store individual lines of output in an array
   IFS=$'\n'
-  lines=($output)
+  lines=(${(@f)output})
 
   # Restore $IFS
   IFS=$oldIFS
