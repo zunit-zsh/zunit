@@ -14,6 +14,14 @@ ZUnit is a powerful unit testing framework for ZSH
 zulu install zunit
 ```
 
+> **NOTE:** In versions of Zulu prior to `1.2.0`, there is an additional step required after install:
+
+  ```sh
+  cd ~/.zulu/packages/zunit
+  ./build.zsh
+  zulu link zunit
+  ```
+
 ### Manual
 
 ```sh
