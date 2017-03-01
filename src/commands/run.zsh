@@ -77,6 +77,14 @@ function _zunit_execute_test() {
       # and the error will be reported back to the test runner
       setopt ERR_EXIT
 
+      # Add an exit handler which calls the teardown function if it is
+      # defined and the test exits early
+      if (( \$+functions[__zunit_test_teardown] )); then
+        zshexit() {
+          __zunit_test_teardown >/dev/null 2>&1
+        }
+      fi
+
       # Create some local variables to store test state in
       integer _zunit_assertion_count=0
       integer state
@@ -84,7 +92,7 @@ function _zunit_execute_test() {
       typeset -a lines
 
       # If a setup function is defined, run it now
-      if (( $+functions[__zunit_test_setup] )); then
+      if (( \$+functions[__zunit_test_setup] )); then
         __zunit_test_setup >/dev/null 2>&1
       fi
 
@@ -93,9 +101,12 @@ function _zunit_execute_test() {
       ${body}
 
       # If a teardown function is defined, run it now
-      if (( $+functions[__zunit_test_teardown] )); then
+      if (( \$+functions[__zunit_test_teardown] )); then
         __zunit_test_teardown >/dev/null 2>&1
       fi
+
+      # Remove the error handler
+      zshexit() {}
 
       # Check the assertion count, and if it is 0, return
       # the warning exit code
@@ -126,7 +137,6 @@ function _zunit_execute_test() {
 
       return 126
     fi
-
 
     # Check if a time limit has been specified. We only do this if
     # the ZSH version is at least 5.1.0, since older versions of ZSH
