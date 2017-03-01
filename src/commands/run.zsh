@@ -49,7 +49,7 @@ function _zunit_output_results() {
   echo "$(color green '✔') Passed      $passed                    "
   echo "$(color red '✘') Failed      $failed                      "
   echo "$(color red '‼') Errors      $errors                      "
-  echo "$(color magenta '•') Skipped     $skipped                 "
+  echo "$(color magenta '●') Skipped     $skipped                 "
   echo "$(color yellow '‼') Warnings    $warnings                 "
   echo
 

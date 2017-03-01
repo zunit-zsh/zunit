@@ -134,6 +134,6 @@ function _zunit_skip() {
     return
   fi
 
-  echo "$(color magenta '•') Skipped: ${name}"
+  echo "$(color magenta '●') Skipped: ${name}"
   echo "  \033[0;38;5;242m# ${message}\033[0;m"
 }
