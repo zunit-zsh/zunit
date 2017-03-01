@@ -1,2 +1,5 @@
-files: ./tests/**/*
-run: zunit
+files: ./tests/**/*.zunit
+run: ./zunit
+---
+files: ./src/**/*.zsh
+run: ./build.zsh && ./zunit

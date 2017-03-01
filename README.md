@@ -14,24 +14,25 @@ ZUnit is a powerful unit testing framework for ZSH
 zulu install zunit
 ```
 
-### zplug
+> **NOTE:** In versions of Zulu prior to `1.2.0`, there is an additional step required after install:
 
-```sh
-zplug "molovo/zunit", \
-  as:command, \
-  use:zunit
-```
+  ```sh
+  cd ~/.zulu/packages/zunit
+  ./build.zsh
+  zulu link zunit
+  ```
 
 ### Manual
 
 ```sh
 git clone https://github.com/molovo/zunit
 cd ./zunit
+./build.zsh
 chmod u+x ./zunit
 cp ./zunit /usr/local/bin
 ```
 
-> For best results, the utilities [Color](https://github.com/molovo/color) and [Revolver](https://github.com/molovo/revolver) should be installed, and in your `$PATH`. The zulu installation method will install these dependencies for you.
+> ZUnit requires the utilities [Color](https://github.com/molovo/color) and [Revolver](https://github.com/molovo/revolver) to be installed, and in your `$PATH`. The zulu installation method will install these dependencies for you.
 
 ## Writing Tests
 
@@ -380,8 +381,12 @@ zunit
 # Runs all test files in ./other_tests
 zunit other_tests
 
-# Runs all tests in the file ./tests/a-test-file
-zunit tests/a-test-file
+# Runs all tests in the file ./tests/a-test-file.zunit
+zunit tests/a-test-file.zunit
+
+# Runs a single test named 'The name of the test' in the file
+# ./tests/a-test-file.zunit
+zunit tests/a-test-file.zunit@'The name of the test'
 
 # Runs all tests, and exists immediately after the first failure
 zunit --fail-fast

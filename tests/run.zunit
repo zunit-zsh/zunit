@@ -1,13 +1,5 @@
 #!/usr/bin/env zunit
 
-@setup {
-  echo 'Testing setup method'
-}
-
-@teardown {
-  echo 'Testing teardown method'
-}
-
 @test 'Test successful command' {
   run return 0
 
@@ -24,5 +16,5 @@
   run a-non-existent-command
 
   assert $state equals 127
-  assert $output same_as 'run:20: command not found: a-non-existent-command'
+  assert $output matches 'run:[0-9]+: command not found: a-non-existent-command'
 }

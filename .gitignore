@@ -1,2 +1,6 @@
+# Ignore test output, but keep the directory
 /tests/_output/*
 !/tests/_output/.gitkeep
+
+# Ignore the compiled program
+/zunit
