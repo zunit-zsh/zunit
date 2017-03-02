@@ -68,11 +68,7 @@ directories:
       zsh
 install:
   - mkdir .bin
-  - git clone https://github.com/molovo/zunit .zunit
-  - cd .zunit
-  - ./build.zsh
-  - ln -s $PWD/zunit ../.bin/zunit
-  - cd ..
+  - curl -L https://github.com/molovo/zunit/releases/download/v0.6.2/zunit > .bin/zunit
   - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
   - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
 before_script:
