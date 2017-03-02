@@ -1,30 +1,39 @@
 addons:
   apt:
     packages:
-      - zsh
-      - ncurses-dev
-      - autoconf
-      - yodl
-      - man
+    - zsh
+    - ncurses-dev
+    - autoconf
+    - yodl
+    - man
 dist: trusty
 matrix:
   include:
-    - env: ZVM_VERSION='4.3.12'
-    - env: ZVM_VERSION='4.3.17'
-    - env: ZVM_VERSION='5.0.8'
-    - env: ZVM_VERSION='5.1.1'
-    - env: ZVM_VERSION='5.2'
-    - env: ZVM_VERSION='5.3.1'
+  - env: ZVM_VERSION='4.3.12'
+  - env: ZVM_VERSION='4.3.17'
+  - env: ZVM_VERSION='5.0.8'
+  - env: ZVM_VERSION='5.1.1'
+  - env: ZVM_VERSION='5.2'
+  - env: ZVM_VERSION='5.3.1'
 before_script:
 - mkdir .bin
 - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
 - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
 - curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm > .bin/zvm
-- curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm-shell-integration.zsh > zvm-shell-integration.zsh
+- curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm-shell-integration.zsh
+  > zvm-shell-integration.zsh
 - chmod u+x .bin/{color,revolver,zvm}
 - export PATH="$HOME/.zvm/bin:$PWD/.bin:$PATH"
 - zvm use ${ZVM_VERSION}
-- ./build.zsh
-script: ./zunit
+- "./build.zsh"
+script: "./zunit"
 notifications:
   email: false
+deploy:
+  provider: releases
+  api_key:
+    secure: JudjZ9Ou15GKmgOga6qpcxtCKITpq+EnGCUvNAGefuuG/etxSAEdXQfjmC4VBzCAC9Pn1gkABFAASUtZdZ5xxXhxkuU/lTopJxWG2tdxNuvW/wflZNGdnxgWA1PcYptKrLoDRLzUpDtsnnvD75mMvAR8+YjRJk76gWVM02we2JR8WKcD1bchQiqzc7CK2X4kDL6zRayYpwFnFKhA8bTlIEJ36k92liTeW8VNwg+9CAsM2zjWpCKmLXrecNl3e5sO+4ssGU+J4gnWYSC112oEzLJzm3cYsEj8dTuFtVHby1DrLrpW1fPQdF1h1cwjHtQkbKTF5vrNKcCmSGcFxA2YbMu8aMdkEZmwN8JvShFamyyYHi90UTyv8PQ/WYER143zGZinZ2VeSaIlFEvH7R/sbS6t4DjbXV7rHF9Zbg0d3D7p71kNDpbtH1dkX6KXxtqCOOVRwAMhwRJ6c7VCXwj0AZEr6YrqZucPjbLTn9NVtI0WPZPOIL/HhyB6vzB1zunmjQERmcwNcC3gR47mmOPWfh1XaCpIurrZKjF+SfH/mDN6Tr24a9oeae6+subI5LW9G1qP2/GmibDVmlX+F1jE4xxKr6sIrzB/DLdYVtiSnzAmquZnGNunUCOMB6DN4nCajh9X3O/e2DzKImHSHZyYIThytSNyMs885ZBbev6F850=
+  file: zunit
+  skip_cleanup: true
+  on:
+    tags: true
