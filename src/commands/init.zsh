@@ -63,17 +63,22 @@ directories:
 
   # An example .travis.yml config
   local travis_yml='addons:
-    apt:
-      packages:
-        zsh
-  before_script:
+  apt:
+    packages:
+      zsh
+install:
   - mkdir .bin
+  - git clone https://github.com/molovo/zunit .zunit
+  - cd .zunit
+  - ./build.zsh
+  - ln -s $PWD/zunit ../.bin/zunit
+  - cd ..
   - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
   - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
-  - curl -L https://raw.githubusercontent.com/molovo/zunit/master/zunit > .bin/zunit
+before_script:
   - chmod u+x .bin/{color,revolver,zunit}
   - export PATH="$PWD/.bin:$PATH"
-  script: zunit'
+script: zunit'
 
   # Check that a config file doesn't already exist so that
   # we don't overwrite it
