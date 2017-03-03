@@ -113,11 +113,11 @@ function _zunit_execute_test() {
       [[ \$_zunit_assertion_count -gt 0 ]] || return 248
     }"
 
-    # Quietly eval the body into a variable as a first test
-    output=$(eval "$(echo "$func")" 2>&1)
-
     # Increment the test count
     total=$(( total + 1 ))
+
+    # Quietly eval the body into a variable as a first test
+    output=$(eval "$(echo "$func")" 2>&1)
 
     # Check the status of the eval, and output any errors
     if [[ $? -ne 0 ]]; then
