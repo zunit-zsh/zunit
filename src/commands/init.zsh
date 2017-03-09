@@ -62,19 +62,19 @@ directories:
 # Write your bootstrap code here"
 
   # An example .travis.yml config
-  local travis_yml='addons:
+  local travis_yml="addons:
   apt:
     packages:
       zsh
 install:
   - mkdir .bin
-  - curl -L https://github.com/molovo/zunit/releases/download/v0.6.2/zunit > .bin/zunit
+  - curl -L https://github.com/molovo/zunit/releases/download/v$(_zunit_version)/zunit > .bin/zunit
   - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
   - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
 before_script:
   - chmod u+x .bin/{color,revolver,zunit}
-  - export PATH="$PWD/.bin:$PATH"
-script: zunit'
+  - export PATH=\"\$PWD/.bin:\$PATH\"
+script: zunit"
 
   # Check that a config file doesn't already exist so that
   # we don't overwrite it
