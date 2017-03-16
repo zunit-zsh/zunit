@@ -510,6 +510,16 @@ function _zunit_run() {
     fi
   fi
 
+  # Check if fail_fast is specified in the config or as an option
+  if [[ -z $fail_fast ]] && [[ "$zunit_config_fail_fast" = "true" ]]; then
+    fail_fast=1
+  fi
+
+  # Check if allow_risky is specified in the config or as an option
+  if [[ -z $allow_risky ]] && [[ "$zunit_config_allow_risky" = "true" ]]; then
+    allow_risky=1
+  fi
+  
   # Check if time_limit is specified in the config or as an option
   if [[ -n $time_limit ]]; then
     shift time_limit
