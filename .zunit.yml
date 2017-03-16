@@ -4,3 +4,5 @@ directories:
   output: tests/_output
   support: tests/_support
 time_limit: 15
+fail_fast: true
+allow_risky: false
