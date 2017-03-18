@@ -9,18 +9,22 @@ _zunit() {
   typeset -A opt_args
   local context state line curcontext="$curcontext"
 
+  _arguments \
+    '1: :_zunit_cmds' \
+    '*::arg:->args'
+
+  _arguments \
+    '*:tests:_files'
+
   _arguments -A \
     '(-h --help)'{-h,--help}'[show help text and exit]' \
     '(-v --version)'{-v,--version}'[show version information and exit]' \
     '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
     '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
-    '--output-text[Print results to a text log, in TAP compatible format]' \
-    '--output-html[Print results to a HTML page]' \
-    '--allow-risky[Supress warnings generated for risky tests]'
-
-  _arguments \
-    '1: :_zunit_cmds' \
-    '*::arg:->args'
+    '--output-text[print results to a text log, in TAP compatible format]' \
+    '--output-html[print results to a HTML page]' \
+    '--allow-risky[supress warnings generated for risky tests]' \
+    '--time-limit[set a time limit in seconds for each test]'
 
   case "$state" in
     args )
@@ -28,17 +32,20 @@ _zunit() {
         init )
           _arguments -A \
             '(-h --help)'{-h,--help}'[show help text and exit]' \
-            '(-v --version)'{-v,--version}'[show version information and exit]'
+            '(-t --travis)'{-t,--travis}'[generate a .travis.yml file]'
+
+          _arguments \
+            '*::arg:->args'
           ;;
         run )
           _arguments -A \
             '(-h --help)'{-h,--help}'[show help text and exit]' \
-            '(-v --version)'{-v,--version}'[show version information and exit]' \
             '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
             '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
-            '--output-text[Print results to a text log, in TAP compatible format]' \
-            '--output-html[Print results to a HTML page]' \
-            '--allow-risky[Supress warnings generated for risky tests]'
+            '--output-text[print results to a text log, in TAP compatible format]' \
+            '--output-html[print results to a HTML page]' \
+            '--allow-risky[supress warnings generated for risky tests]' \
+            '--time-limit[set a time limit in seconds for each test]'
 
           _arguments \
             '*:tests:_files'
