@@ -47,7 +47,10 @@ function _zunit_init() {
 directories:
   tests: tests
   output: tests/_output
-  support: tests/_support"
+  support: tests/_support
+time_limit: 0
+fail_fast: false
+allow_risky: false"
 
   # An example test file
   local example="#!/usr/bin/env zunit

@@ -23,13 +23,14 @@ function _zunit_usage() {
   echo "      --output-text  Print results to a text log, in TAP compatible format"
   echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
+  echo "      --time-limit   Set a time limit in seconds for each test"
 }
 
 ###
 # Output the version number
 ###
 function _zunit_version() {
-  echo '0.6.4'
+  echo '0.7.0'
 }
 
 ###

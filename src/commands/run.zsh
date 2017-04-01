@@ -10,13 +10,14 @@ function _zunit_run_usage() {
   echo "  zunit run [options] [tests...]"
   echo
   echo "$(color yellow 'Options:')"
-  echo "  -h, --help         Output help text and exit"
-  echo "  -v, --version      Output version information and exit"
-  echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
-  echo "  -t, --tap          Output results in a TAP compatible format"
-  echo "      --output-text  Print results to a text log, in TAP compatible format"
-  echo "      --output-html  Print results to a HTML page"
-  echo "      --allow-risky  Supress warnings generated for risky tests"
+  echo "  -h, --help             Output help text and exit"
+  echo "  -v, --version          Output version information and exit"
+  echo "  -f, --fail-fast        Stop the test runner immediately after the first failure"
+  echo "  -t, --tap              Output results in a TAP compatible format"
+  echo "      --output-text      Print results to a text log, in TAP compatible format"
+  echo "      --output-html      Print results to a HTML page"
+  echo "      --allow-risky      Supress warnings generated for risky tests"
+  echo "      --time-limit <n>   Set a time limit of n seconds for each test"
 }
 
 ###
@@ -142,16 +143,16 @@ function _zunit_execute_test() {
     # the ZSH version is at least 5.1.0, since older versions of ZSH
     # are unable to handle asynchronous processes in the way we need
     autoload is-at-least
-    if is-at-least 5.1.0 && [[ -n $zunit_config_time_limit ]]; then
+    if is-at-least 5.1.0 && [[ -n ${time_limit:#0} ]]; then
       # Create another wrapper function around the test
       __zunit_async_test_wrapper() {
         local pid
 
-        # Get the current timestamp, and the time limit, and use those to
-        # work out the kill time for the sub process
-        integer time_limit=$(( ${zunit_config_time_limit:-30} * 1000 ))
+        # Get the current timestamp, and the time limit in ms, and use
+        # those to work out the kill time for the sub process
+        integer time_limit_ms=$(( time_limit * 1000 ))
         integer time=$(( EPOCHREALTIME * 1000 ))
-        integer kill_time=$(( $time + $time_limit ))
+        integer kill_time=$(( $time + $time_limit_ms ))
 
         # Launch the test function asynchronously and store its PID
         __zunit_tmp_test_function &
@@ -189,7 +190,7 @@ function _zunit_execute_test() {
 
       return
     elif [[ $state -eq 78 ]]; then
-      _zunit_error "Test took too long to run. Terminated after ${zunit_config_time_limit:-30} seconds" $output
+      _zunit_error "Test took too long to run. Terminated after $time_limit seconds" $output
 
       return
     elif [[ -z $allow_risky && $state -eq 248 ]]; then
@@ -439,7 +440,8 @@ function _zunit_run() {
     t=tap -tap=tap \
     -output-text=output_text \
     -output-html=output_html \
-    -allow-risky=allow_risky
+    -allow-risky=allow_risky \
+    -time-limit:=time_limit
 
   # TAP output is enabled
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
@@ -508,6 +510,23 @@ function _zunit_run() {
     fi
   fi
 
+  # Check if fail_fast is specified in the config or as an option
+  if [[ -z $fail_fast ]] && [[ "$zunit_config_fail_fast" = "true" ]]; then
+    fail_fast=1
+  fi
+
+  # Check if allow_risky is specified in the config or as an option
+  if [[ -z $allow_risky ]] && [[ "$zunit_config_allow_risky" = "true" ]]; then
+    allow_risky=1
+  fi
+
+  # Check if time_limit is specified in the config or as an option
+  if [[ -n $time_limit ]]; then
+    shift time_limit
+  elif [[ -n $zunit_config_time_limit ]]; then
+    time_limit=$zunit_config_time_limit
+  fi
+
   arguments=("$@")
   testfiles=()
 
@@ -536,7 +555,7 @@ function _zunit_run() {
   # Loop through each of the test files and run them
   local line
   local total=0 passed=0 failed=0 errors=0 warnings=0 skipped=0
-  for testfile in $testfiles; do
+  for testfile in ${(o)testfiles}; do
     _zunit_run_testfile $testfile
   done
 
