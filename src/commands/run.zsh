@@ -555,7 +555,7 @@ function _zunit_run() {
   # Loop through each of the test files and run them
   local line
   local total=0 passed=0 failed=0 errors=0 warnings=0 skipped=0
-  for testfile in $testfiles; do
+  for testfile in ${(o)testfiles}; do
     _zunit_run_testfile $testfile
   done
 
