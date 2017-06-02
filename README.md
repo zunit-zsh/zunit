@@ -52,7 +52,7 @@ The body of each test can contain any valid ZSH code. The zunit shebang `#!/usr/
 
 ## Documentation
 
-For a full breakdown of ZUnit's syntax and functionality, check out the [official documentation](https://molovo.co/zunit/docs).
+For a full breakdown of ZUnit's syntax and functionality, check out the [official documentation](https://zunit.xyz/docs/).
 
 ## Contributing
 
