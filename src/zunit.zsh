@@ -20,6 +20,7 @@ function _zunit_usage() {
   echo "  -v, --version      Output version information and exit"
   echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
   echo "  -t, --tap          Output results in a TAP compatible format"
+  echo "      --verbose      Prints full output from each test"
   echo "      --output-text  Print results to a text log, in TAP compatible format"
   echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
