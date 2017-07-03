@@ -30,7 +30,7 @@ function _zunit_usage() {
 # Output the version number
 ###
 function _zunit_version() {
-  echo '0.7.0'
+  echo '0.8.0'
 }
 
 ###
