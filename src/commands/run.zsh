@@ -25,18 +25,18 @@ function _zunit_run_usage() {
 # Format a ms timestamp in a human-readable format
 ###
 function _zunit_human_time() {
-  local ms=$1
   local tmp=$(( $1 / 1000 ))
   local days=$(( tmp / 60 / 60 / 24 ))
   local hours=$(( tmp / 60 / 60 % 24 ))
   local minutes=$(( tmp / 60 % 60 ))
   local seconds=$(( tmp % 60 ))
+  local ms=$(( $1 % 1000 ))
   (( $days > 0 )) && print -n "${days}d "
   (( $hours > 0 )) && print -n "${hours}h "
   (( $minutes > 0 )) && print -n "${minutes}m "
   (( $seconds > 5 )) && print -n "${seconds}s "
-  (( $seconds < 30 )) && (( $seconds > 5 )) && print -n "$(( ms - $((seconds*1000)) ))ms"
-  (( $tmp <= 5 )) && print -n "${1}ms"
+  (( $seconds < 30 )) && (( $seconds > 5 )) && print -n "${ms}ms"
+  (( $seconds <= 5 )) && print -n "${1}ms"
 }
 
 ###
