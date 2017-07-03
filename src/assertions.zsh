@@ -3,6 +3,18 @@
 ################################
 
 ###
+# Assert one string is a substring if another
+###
+function _zunit_assert_is_substring_of() {
+  local value=$1 comparison=$2
+
+  [[ "$comparison" = *"$value"* ]] && return 0
+
+  echo "'$value' is not a substring of '$comparison'"
+  exit 1
+}
+
+###
 # Assert that two integers are equal
 ###
 function _zunit_assert_equals() {
