@@ -6,3 +6,4 @@ directories:
 time_limit: 15
 fail_fast: true
 allow_risky: false
+verbose: false

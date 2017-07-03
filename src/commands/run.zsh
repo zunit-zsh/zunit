@@ -14,6 +14,7 @@ function _zunit_run_usage() {
   echo "  -v, --version          Output version information and exit"
   echo "  -f, --fail-fast        Stop the test runner immediately after the first failure"
   echo "  -t, --tap              Output results in a TAP compatible format"
+  echo "      --verbose          Prints full output from each test"
   echo "      --output-text      Print results to a text log, in TAP compatible format"
   echo "      --output-html      Print results to a HTML page"
   echo "      --allow-risky      Supress warnings generated for risky tests"
@@ -194,10 +195,16 @@ function _zunit_execute_test() {
 
       return
     elif [[ -z $allow_risky && $state -eq 248 ]]; then
+      # If --verbose is specified, print test output to screen
+      [[ -n $verbose && -n $output ]] && echo $output
+
       _zunit_warn 'No assertions were run, test is risky'
 
       return
     elif [[ -n $allow_risky && $state -eq 248 ]] || [[ $state -eq 0 ]]; then
+      # If --verbose is specified, print test output to screen
+      [[ -n $verbose && -n $output ]] && echo $output
+
       _zunit_success
 
       return
@@ -426,7 +433,7 @@ function _zunit_parse_argument() {
 ###
 function _zunit_run() {
   local -a arguments testfiles
-  local fail_fast tap allow_risky
+  local fail_fast tap allow_risky verbose
   local output_text logfile_text output_html logfile_html
 
   # Load the datetime module, and record the start time
@@ -438,6 +445,7 @@ function _zunit_run() {
     v=version -version=version \
     f=fail_fast -fail-fast=fail_fast \
     t=tap -tap=tap \
+    -verbose=verbose \
     -output-text=output_text \
     -output-html=output_html \
     -allow-risky=allow_risky \
@@ -518,6 +526,11 @@ function _zunit_run() {
   # Check if allow_risky is specified in the config or as an option
   if [[ -z $allow_risky ]] && [[ "$zunit_config_allow_risky" = "true" ]]; then
     allow_risky=1
+  fi
+
+  # Check if verbose is specified in the config or as an option
+  if [[ -z $verbose ]] && [[ "$zunit_config_verbose" = "true" ]]; then
+    verbose=1
   fi
 
   # Check if time_limit is specified in the config or as an option
