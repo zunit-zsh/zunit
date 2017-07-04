@@ -7,6 +7,7 @@ addons:
     - yodl
     - man
 dist: trusty
+language: generic
 matrix:
   include:
   - env: ZVM_VERSION='4.3.12'
