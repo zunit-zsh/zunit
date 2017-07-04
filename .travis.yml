@@ -8,6 +8,10 @@ addons:
     - man
 dist: trusty
 language: generic
+cache:
+  apt: true
+  directories:
+    - $HOME/.zvm
 matrix:
   include:
   - env: ZVM_VERSION='4.3.12'
@@ -17,6 +21,7 @@ matrix:
   - env: ZVM_VERSION='5.2'
   - env: ZVM_VERSION='5.3.1'
 before_script:
+- if [[ $(ls "$HOME/.zvm" | wc -l) -eq 0 ]]; then rm -rf "$HOME/.zvm"; fi
 - mkdir .bin
 - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
 - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
