@@ -26,7 +26,6 @@ before_script:
 - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
 - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
 - curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm > .bin/zvm
-- curl -L https://raw.githubusercontent.com/molovo/zvm/master/zvm-shell-integration.zsh > zvm-shell-integration.zsh
 - chmod u+x .bin/{color,revolver,zvm}
 - export PATH="$HOME/.zvm/bin:$PWD/.bin:$PATH"
 - zvm use ${ZVM_VERSION}
