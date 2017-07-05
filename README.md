@@ -22,6 +22,14 @@ zulu install zunit
   zulu link zunit
   ```
 
+### [Homebrew](http://brew.sh)
+
+```sh
+brew tap molovo/revolver https://github.com/molovo/revolver
+brew tap molovo/zunit https://github.com/molovo/zunit
+brew install zunit # [--devel|--HEAD]
+```
+
 ### Manual
 
 ```sh
