@@ -75,6 +75,11 @@ function run() {
   # Restore $IFS
   IFS=$oldIFS
 
+  # Print the command output if --verbose is specified
+  if [[ -n $verbose && -n $output ]]; then
+    echo $output
+  fi
+
   # Restore the exit on error state
   setopt ERR_EXIT
 }
