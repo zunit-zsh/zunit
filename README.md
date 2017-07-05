@@ -21,6 +21,13 @@ zulu install zunit
   ./build.zsh
   zulu link zunit
   ```
+  
+### Homebrew
+
+```sh
+brew tap molovo/revolver
+brew install zunit-zsh/zunit/zunit
+```
 
 ### Manual
 
@@ -32,7 +39,7 @@ chmod u+x ./zunit
 cp ./zunit /usr/local/bin
 ```
 
-> ZUnit requires the utilities [Color](https://github.com/molovo/color) and [Revolver](https://github.com/molovo/revolver) to be installed, and in your `$PATH`. The zulu installation method will install these dependencies for you.
+> ZUnit requires the utilities [Color](https://github.com/molovo/color) and [Revolver](https://github.com/molovo/revolver) to be installed, and in your `$PATH`. The zulu or homebrew installation methods will install these dependencies for you.
 
 ## Writing Tests
 
