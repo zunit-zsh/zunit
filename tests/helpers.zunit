@@ -1,0 +1,29 @@
+#!/usr/bin/env zunit
+
+@test 'Test pass helper' {
+  run pass
+
+  assert $state equals 0
+  assert "$output" is_empty
+}
+
+@test 'Test fail helper' {
+  run fail 'The failure message'
+
+  assert $state equals 1
+  assert "$output" same_as 'The failure message'
+}
+
+@test 'Test error helper' {
+  run error 'The error message'
+
+  assert $state equals 78
+  assert "$output" same_as 'The error message'
+}
+
+@test 'Test skip helper' {
+  run skip 'The skip message'
+
+  assert $state equals 48
+  assert "$output" same_as 'The skip message'
+}

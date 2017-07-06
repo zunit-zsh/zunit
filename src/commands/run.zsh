@@ -167,6 +167,7 @@ function _zunit_execute_test() {
             # The kill time has been reached, kill the child process,
             # and exit the wrapper function
             kill -9 $pid >/dev/null 2>&1
+            echo "Test took too long to run. Terminated after $time_limit seconds"
             exit 78
           fi
         done
@@ -191,7 +192,7 @@ function _zunit_execute_test() {
 
       return
     elif [[ $state -eq 78 ]]; then
-      _zunit_error "Test took too long to run. Terminated after $time_limit seconds" $output
+      _zunit_error $output
 
       return
     elif [[ -z $allow_risky && $state -eq 248 ]]; then
