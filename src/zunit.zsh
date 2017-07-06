@@ -57,24 +57,13 @@ function _zunit() {
     fi
   fi
 
-  # Check for the 'color' dependency
-  $(type color >/dev/null 2>&1)
-  if [[ $? -ne 0 ]]; then
-    # 'color' could not be found, so print an error message
-    missing_dependencies=$(( missing_dependencies + 1 ))
-    echo "\033[0;31mMissing required dependency: Color - https://github.com/molovo/color\033[0;m" >&2
-  fi
-
   # Check for the 'revolver' dependency
   $(type revolver >/dev/null 2>&1)
   if [[ $? -ne 0 ]]; then
     # 'revolver' could not be found, so print an error message
-    missing_dependencies=$(( missing_dependencies + 1 ))
     echo "\033[0;31mMissing required dependency: Revolver - https://github.com/molovo/revolver\033[0;m" >&2
+    exit 1
   fi
-
-  # If any missing dependencies have been found, we can't run tests, so we exit
-  [[ $missing_dependencies -gt 0 ]] && exit 1
 
   zparseopts -D -E \
     h=help -help=help \
