@@ -71,7 +71,7 @@ allow_risky: false"
       zsh
 install:
   - mkdir .bin
-  - curl -L https://github.com/molovo/zunit/releases/download/v$(_zunit_version)/zunit > .bin/zunit
+  - curl -L https://github.com/zunit-zsh/zunit/releases/download/v$(_zunit_version)/zunit > .bin/zunit
   - curl -L https://raw.githubusercontent.com/molovo/revolver/master/revolver > .bin/revolver
   - curl -L https://raw.githubusercontent.com/molovo/color/master/color.zsh > .bin/color
 before_script:
