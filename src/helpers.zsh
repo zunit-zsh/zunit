@@ -159,6 +159,37 @@ function assert() {
 }
 
 ###
+# Mark the current test as passed
+###
+function pass() {
+  # Exit code 0 will end the test, and mark is as passed. The reason for
+  # skipping is echoed to stdout first, so that it can be picked up by the
+  # error handler
+  exit 0
+}
+
+###
+# Mark the current test as failed
+###
+function fail() {
+  # Any non-zero exit code without special meaning will mark the test as failed.
+  # The failure message is echoed to stdout first, so that it can be picked up
+  # by the error handler
+  echo "$@"
+  exit 1
+}
+
+###
+# Mark the current test as skipped
+###
+function error() {
+  # Exit code 78 will end the test, and report an error. The error message
+  # is echoed to stdout first, so that it can be picked up by the error handler
+  echo "$@"
+  exit 78
+}
+
+###
 # Mark the current test as skipped
 ###
 function skip() {
