@@ -1,6 +1,6 @@
 ![ZUnit](https://zunit.xyz/img/logo.png)
 
-[![Build Status](https://travis-ci.org/molovo/zunit.svg?branch=master)](https://travis-ci.org/molovo/zunit) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/molovo/zunit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GitHub release](https://img.shields.io/github/release/zunit-zsh/zunit.svg)](https://github.com/zunit-zsh/zunit/releases/latest) [![Build Status](https://travis-ci.org/zunit-zsh/zunit.svg?branch=master)](https://travis-ci.org/zunit-zsh/zunit) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/zunit-zsh/zunit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ZUnit is a powerful unit testing framework for ZSH
 
