@@ -25,7 +25,6 @@ zulu install zunit
 ### Homebrew
 
 ```sh
-brew tap molovo/revolver
 brew install zunit-zsh/zunit/zunit
 ```
 
