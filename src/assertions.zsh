@@ -51,6 +51,54 @@ function _zunit_assert_not_equal_to() {
 }
 
 ###
+# Assert that an integer is positive
+###
+function _zunit_assert_is_positive() {
+  local value=$1 comparison=$2
+
+  [[ $value -gt 0 ]] && return 0
+
+  echo "'$value' is not positive"
+  exit 1
+}
+
+###
+# Assert that an integer is negative
+###
+function _zunit_assert_is_negative() {
+  local value=$1 comparison=$2
+
+  [[ $value -lt 0 ]] && return 0
+
+  echo "'$value' is not negative"
+  exit 1
+}
+
+###
+# Assert that an integer is greater than the comparison
+###
+function _zunit_assert_is_greater_than() {
+  local value=$1 comparison=$2
+
+  [[ $value -gt $comparison ]] && return 0
+
+  echo "'$value' is not greater than '$comparison'"
+  exit 1
+}
+
+###
+# Assert that an integer is less than the comparison
+###
+function _zunit_assert_is_less_than() {
+  local value=$1 comparison=$2
+
+  [[ $value -lt $comparison ]] && return 0
+
+  echo "'$value' is not less than '$comparison'"
+  exit 1
+}
+
+###
 # Assert that two string are the same
 ###
 function _zunit_assert_same_as() {
