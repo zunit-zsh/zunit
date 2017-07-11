@@ -83,7 +83,7 @@ function _zunit_execute_test() {
       # defined and the test exits early
       if (( \$+functions[__zunit_test_teardown] )); then
         zshexit() {
-          __zunit_test_teardown >/dev/null 2>&1
+          __zunit_test_teardown 2>&1
         }
       fi
 
@@ -95,7 +95,7 @@ function _zunit_execute_test() {
 
       # If a setup function is defined, run it now
       if (( \$+functions[__zunit_test_setup] )); then
-        __zunit_test_setup >/dev/null 2>&1
+        __zunit_test_setup 2>&1
       fi
 
       # The test body is printed here, so when we eval the wrapper
@@ -104,7 +104,7 @@ function _zunit_execute_test() {
 
       # If a teardown function is defined, run it now
       if (( \$+functions[__zunit_test_teardown] )); then
-        __zunit_test_teardown >/dev/null 2>&1
+        __zunit_test_teardown 2>&1
       fi
 
       # Remove the error handler
