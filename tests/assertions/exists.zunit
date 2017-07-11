@@ -1,4 +1,4 @@
-#!/usr/bin/env zunit
+#! /usr/bin/env zunit
 
 @test 'Test _zunit_assert_exists success' {
   run assert './exists.zunit' exists

@@ -409,7 +409,7 @@ function _zunit_parse_argument() {
     line=$(cat $argument | head -n 1)
 
     # Check for the zunit shebang
-    if [[ $line = "#!/usr/bin/env zunit" ]]; then
+    if [[ $line =~ "#! ?/usr/bin/env zunit" ]]; then
       # Add it to the array
       testfiles[(( ${#testfiles} + 1 ))]=("$argument${test_name+"@$test_name"}")
       return
