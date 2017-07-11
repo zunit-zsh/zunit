@@ -1,0 +1,36 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_contains match' {
+  run assert 'hello world' contains 'lo wo'
+
+  assert "$output" is_empty
+  assert $state equals 0
+}
+
+@test 'Test _zunit_assert_contains suffix match' {
+  run assert 'hello world' contains 'world'
+
+  assert "$output" is_empty
+  assert $state equals 0
+}
+
+@test 'Test _zunit_assert_contains prefix match' {
+  run assert 'hello world' contains 'hello'
+
+  assert "$output" is_empty
+  assert $state equals 0
+}
+
+@test 'Test _zunit_assert_contains whole word matches' {
+  run assert 'red blue green' contains 'red blue green'
+
+  assert "$output" is_empty
+  assert $state equals 0
+}
+
+@test 'Test _zunit_assert_contains match failure' {
+  run assert 'elephants' contains 'foo'
+
+  assert "$output" same_as "'elephants' does not contain 'foo'"
+  assert $state equals 1
+}

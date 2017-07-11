@@ -1,0 +1,15 @@
+#!/usr/bin/env zunit
+
+@test 'Test _zunit_assert_does_not_contain success' {
+    run assert 'yellow' does_not_contain 'foo'
+
+    assert "$output" is_empty
+    assert $state equals 0
+}
+
+@test 'Test _zunit_assert_does_not_contain failure' {
+    run assert 'foobar' does_not_contain 'foo'
+
+    assert "$output" same_as "'foobar' contains 'foo'"
+    assert $state equals 1
+}

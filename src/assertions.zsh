@@ -3,7 +3,7 @@
 ################################
 
 ###
-# Assert one string is a substring if another
+# Assert one string is a substring of another
 ###
 function _zunit_assert_is_substring_of() {
   local value=$1 comparison=$2
@@ -15,7 +15,7 @@ function _zunit_assert_is_substring_of() {
 }
 
 ###
-# Assert one string is not a substring if another
+# Assert one string is not a substring of another
 ###
 function _zunit_assert_is_not_substring_of() {
   local value=$1 comparison=$2
@@ -23,6 +23,30 @@ function _zunit_assert_is_not_substring_of() {
   [[ "$comparison" != *"$value"* ]] && return 0
 
   echo "'$value' is a substring of '$comparison'"
+  exit 1
+}
+
+###
+# Assert one string contains another
+###
+function _zunit_assert_contains() {
+  local value=$1 comparison=$2
+
+  [[ "$value" = *"$comparison"* ]] && return 0
+
+  echo "'$value' does not contain '$comparison'"
+  exit 1
+}
+
+###
+# Assert one string does not contain another
+###
+function _zunit_assert_does_not_contain() {
+  local value=$1 comparison=$2
+
+  [[ "$value" != *"$comparison"* ]] && return 0
+
+  echo "'$value' contains '$comparison'"
   exit 1
 }
 
