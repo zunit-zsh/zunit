@@ -82,19 +82,19 @@ script: zunit"
   # Check that a config file doesn't already exist so that
   # we don't overwrite it
   if [[ -f "$PWD/.zunit.yml" ]]; then
-    echo $(color red "Zunit config file already exists at $PWD/.zunit.yml") >&2
-    exit 1
+    echo $(color yellow "ZUnit config file already exists at $PWD/.zunit.yml. Skipping...")
   else
     # Write the contents to the config file
+    echo "Writing ZUnit config file to $PWD/.zunit.yml"
     echo "$yaml" > "$PWD/.zunit.yml"
   fi
 
   # Check that the tests directory doesn't already exist so that
   # we don't overwrite it
   if [[ -d "$PWD/tests" ]]; then
-    echo $(color red "Directory already exists at $PWD/tests") >&2
-    exit 1
+    echo $(color yellow "Test directory already exists at $PWD/tests. Skipping...")
   else
+    echo "Creating test directory at $PWD/tests"
     # Create the directory structure for tests
     mkdir -p tests/_{output,support}
     touch tests/_{output,support}/.gitkeep
@@ -109,9 +109,9 @@ script: zunit"
     # Check that a travis config doesn't already exist so that
     # we don't overwrite it
     if [[ -f "$PWD/.travis.yml" ]]; then
-      echo $(color red "Travis config already exists at $PWD/.travis.yml") >&2
-      exit 1
+      echo $(color yellow "Travis config already exists at $PWD/.travis.yml. Skipping...")
     else
+      echo "Writing Travis CI config to $PWD/.travis.yml"
       # Write the contents to the config file
       echo "$travis_yml" > "$PWD/.travis.yml"
     fi
