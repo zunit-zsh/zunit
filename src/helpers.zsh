@@ -144,7 +144,7 @@ function assert() {
   _zunit_assertion_count=$(( _zunit_assertion_count + 1 ))
 
   # Run the assertion
-  "_zunit_assert_${assertion}" $value ${(@f)comparisons[@]}
+  "_zunit_assert_${assertion}" "$value" ${(@f)comparisons[@]}
 
   local state=$?
 
