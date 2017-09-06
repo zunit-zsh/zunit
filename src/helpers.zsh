@@ -81,7 +81,7 @@ function run() {
 
   # Store each word of the command in an array, and grab the first
   # argument which is the command name
-  cmd=(${@[@]})
+  cmd=("${@[@]}")
   name="${cmd[1]}"
 
   # If the command is not an existing command or file,
