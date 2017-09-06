@@ -11,3 +11,9 @@
   assert $state equals 1
   assert $output same_as "'-1' is not greater than '1'"
 }
+
+@test 'Test _zunit_assert_is_greater_than failure with empty value' {
+  run assert '' is_greater_than 1
+  assert $state equals 1
+  assert $output same_as "'' is not greater than '1'"
+}

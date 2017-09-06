@@ -6,6 +6,12 @@
   assert $output is_empty
 }
 
+@test 'Test _zunit_assert_not_in success with empty value' {
+  run assert '' not_in 'x' 'y' 'z'
+  assert $state equals 0
+  assert $output is_empty
+}
+
 @test 'Test _zunit_assert_not_in failure' {
   run assert 'a' not_in 'a' 'b' 'c'
   assert $state equals 1

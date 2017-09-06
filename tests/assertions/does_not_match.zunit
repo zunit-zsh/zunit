@@ -10,6 +10,12 @@
   assert $output is_empty
 }
 
+@test 'Test _zunit_assert_does_not_match success with empty value' {
+  run assert '' does_not_match '[0-9]+'
+  assert $state equals 0
+  assert $output is_empty
+}
+
 @test 'Test _zunit_assert_does_not_match failure' {
   run assert 'test' does_not_match '[a-z]{4}'
   assert $state equals 1

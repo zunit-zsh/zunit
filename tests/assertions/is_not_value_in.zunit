@@ -11,6 +11,17 @@
   assert "$output" is_empty
 }
 
+@test 'Test _zunit_assert_is_not_value_in success with empty value' {
+  typeset -A hash; hash=(
+    'x' 7
+    'y' 8
+    'z' 9
+  )
+  run assert '' is_not_value_in ${(@kv)hash}
+  assert $state equals 0
+  assert "$output" is_empty
+}
+
 @test 'Test _zunit_assert_is_not_value_in failure' {
   typeset -A hash; hash=(
     'a' 1
