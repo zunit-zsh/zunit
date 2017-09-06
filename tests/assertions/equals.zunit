@@ -11,3 +11,9 @@
   assert $state equals 1
   assert $output same_as "'1' is not equal to '0'"
 }
+
+@test 'Test _zunit_assert_equals failure with empty value' {
+  run assert '' equals 1
+  assert $state equals 1
+  assert $output same_as "'' is not equal to '1'"
+}
