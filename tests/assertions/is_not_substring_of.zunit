@@ -13,3 +13,10 @@
     assert "$output" same_as "'foo' is a substring of 'foobar'"
     assert $state equals 1
 }
+
+@test 'Test _zunit_assert_is_substring_of failure with empty value' {
+    run assert '' is_not_substring_of 'foobar'
+
+    assert "$output" same_as "'' is a substring of 'foobar'"
+    assert $state equals 1
+}

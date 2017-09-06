@@ -19,3 +19,9 @@
   assert $state equals 1
   assert $output same_as "'123' does not match /[a-z]+/"
 }
+
+@test 'Test _zunit_assert_matches failure with empty value' {
+  run assert '' matches '[a-z]+'
+  assert $state equals 1
+  assert $output same_as "'' does not match /[a-z]+/"
+}

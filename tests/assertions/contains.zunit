@@ -34,3 +34,10 @@
   assert "$output" same_as "'elephants' does not contain 'foo'"
   assert $state equals 1
 }
+
+@test 'Test _zunit_assert_contains match failure with empty value' {
+  run assert '' contains 'foo'
+
+  assert "$output" same_as "'' does not contain 'foo'"
+  assert $state equals 1
+}

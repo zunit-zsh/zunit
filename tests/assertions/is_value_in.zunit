@@ -21,3 +21,14 @@
   assert $state equals 1
   assert "$output" same_as "'4' is not a value in (x 1 y 2 z 3)"
 }
+
+@test 'Test _zunit_assert_is_value_in failure with empty value' {
+  typeset -A hash; hash=(
+    'x' 1
+    'y' 2
+    'z' 3
+  )
+  run assert '' is_value_in ${(@kv)hash}
+  assert $state equals 1
+  assert "$output" same_as "'' is not a value in (x 1 y 2 z 3)"
+}

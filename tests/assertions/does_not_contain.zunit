@@ -7,6 +7,13 @@
     assert $state equals 0
 }
 
+@test 'Test _zunit_assert_does_not_contain success with empty value' {
+    run assert '' does_not_contain 'foo'
+
+    assert "$output" is_empty
+    assert $state equals 0
+}
+
 @test 'Test _zunit_assert_does_not_contain failure' {
     run assert 'foobar' does_not_contain 'foo'
 

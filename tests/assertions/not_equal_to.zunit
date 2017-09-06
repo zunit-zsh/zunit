@@ -6,6 +6,18 @@
   assert $output is_empty
 }
 
+@test 'Test _zunit_assert_not_equal_to success with empty value' {
+  run assert '' not_equal_to 1
+  assert $state equals 0
+  assert $output is_empty
+}
+
+@test 'Test _zunit_assert_not_equal_to success with empty comparison' {
+  run assert 1 not_equal_to ''
+  assert $state equals 0
+  assert $output is_empty
+}
+
 @test 'Test _zunit_assert_not_equal_to failure' {
   run assert 1 not_equal_to 1
   assert $state equals 1

@@ -7,6 +7,13 @@
   assert $state equals 0
 }
 
+@test 'Test _zunit_assert_is_substring_of match with empty value' {
+  run assert '' is_substring_of 'hello world'
+
+  assert "$output" is_empty
+  assert $state equals 0
+}
+
 @test 'Test _zunit_assert_is_substring_of suffix match' {
   run assert 'world' is_substring_of 'hello world'
 
