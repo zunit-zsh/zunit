@@ -113,10 +113,7 @@ function run() {
   setopt ERR_EXIT
 }
 
-###
-# Redirect the assertion shorthand to the correct function
-###
-function assert() {
+function _assert() {
   local value=$1 assertion=$2
   local -a comparisons
 
@@ -148,15 +145,38 @@ function assert() {
 
   local state=$?
 
-  # If the assertion failed, then return that exit code to the
-  # test, which will stop its execution and mark it as failed
+  # Reset $IFS
+   IFS=$oldIFS
+
+   return $state
+}
+
+
+###
+# Redirect the assertion shorthand to the correct function
+###
+function assert() {
+  _assert "$@"
+  local state=$?
+
   if [[ $state -ne 0 ]]; then
     exit $state
   fi
-
-  # Reset $IFS
-  IFS=$oldIFS
 }
+
+
+###
+# Redirect the assertion shorthand to the correct function
+###
+function assert_not() {
+  _assert "$@"
+  local state=$?
+
+  if [[ $state -eq 0 ]]; then
+    exit $state
+  fi
+}
+
 
 ###
 # Mark the current test as passed

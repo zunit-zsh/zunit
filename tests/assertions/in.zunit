@@ -1,5 +1,10 @@
 #!/usr/bin/env zunit
 
+@test 'Test not _zunit_assert_in success' {
+  run assert_not 'a' in 'b' 'c'
+  assert "$output" same_as "'a' is not in (b c)"
+}
+
 @test 'Test _zunit_assert_in success' {
   run assert 'a' in 'a' 'b' 'c'
   assert $state equals 0
