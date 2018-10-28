@@ -221,13 +221,20 @@ function _zunit_execute_test() {
 # Encode test name into a value which can be used as a hash key
 ###
 function _zunit_encode_test_name() {
-  echo "$1" | tr A-Z a-z \
-            | tr _ ' ' \
-            | tr - ' ' \
-            | tr -s ' ' \
-            | sed 's/\- /-/' \
-            | sed 's/ \-/-/' \
-            | tr ' ' "-"
+  setopt localoptions extendedglob noshwordsplit noksharrays
+  local -A map
+  map=(
+    "_" ' '
+    "-" ' '
+  )
+
+  1=${1//(#b)([A-Z])/${(L)match[1]}}                  # tr A-Z a-z
+  1=${1//(#b)(?)/${map[${match[1]}]:-${match[1]}}}    # tr _ ' ' | tr - ' '
+  1=${1//[[:space:]]##/ }                             # tr -s ' ', but also with unicode, also vertical spaces
+  1=${${1//- /-}// -/-}                               # sed 's/\- /-/' | sed 's/ \-/-/'
+  1=${1// /-}                                         # tr ' ' "-"
+
+  print -r -- "$1"
 }
 
 ###
