@@ -10,15 +10,18 @@ function _zunit_run_usage() {
   echo "  zunit run [options] [tests...]"
   echo
   echo "$(color yellow 'Options:')"
-  echo "  -h, --help             Output help text and exit"
-  echo "  -v, --version          Output version information and exit"
-  echo "  -f, --fail-fast        Stop the test runner immediately after the first failure"
-  echo "  -t, --tap              Output results in a TAP compatible format"
-  echo "      --verbose          Prints full output from each test"
-  echo "      --output-text      Print results to a text log, in TAP compatible format"
-  echo "      --output-html      Print results to a HTML page"
-  echo "      --allow-risky      Supress warnings generated for risky tests"
-  echo "      --time-limit <n>   Set a time limit of n seconds for each test"
+  echo "  -h, --help               Output help text and exit"
+  echo "  -v, --version            Output version information and exit"
+  echo "  -f, --fail-fast          Stop the test runner immediately after the first failure"
+  echo "  -t, --tap                Output results in a TAP compatible format"
+  echo "      --verbose            Prints full output from each test"
+  echo "      --output-text        Print results to a text log, in TAP compatible format"
+  echo "      --output-html        Print results to a HTML page"
+  echo "      --allow-risky        Supress warnings generated for risky tests"
+  echo "      --time-limit <n>     Set a time limit of n seconds for each test"
+  echo "      --test-dir <dir>     Set the directory containing tests"
+  echo "      --support-dir <dir>  Set the directory containing supporting files"
+  echo "      --output-dir <dir>   Set the output directory"
 }
 
 ###
@@ -457,7 +460,10 @@ function _zunit_run() {
     -output-text=output_text \
     -output-html=output_html \
     -allow-risky=allow_risky \
-    -time-limit:=time_limit
+    -time-limit:=time_limit \
+    -test-dir:=test_dir \
+    -support-dir:=support_dir \
+    -output-dir:=output_dir
 
   # TAP output is enabled
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
@@ -477,6 +483,11 @@ function _zunit_run() {
     echo
   fi
 
+  # Check if output directory is specified in the config or as an option
+  if [[ -z $output_dir ]] && [[ -n "$zunit_config_directories_output" ]]; then
+    output_dir="$zunit_config_directories_output"
+  fi
+
   # Text output has been requested
   if [[ -n $output_text || -n $output_html ]]; then
     # Make sure we have a config file, otherwise we can't determine
@@ -488,7 +499,7 @@ function _zunit_run() {
 
     # If the output directory still isn't defined, it must not
     # be defined in the config file
-    if [[ -z $zunit_config_directories_output ]]; then
+    if [[ -z $output_dir ]]; then
       echo $(color red 'Output directory must be specified in .zunit.yml')
       exit 1
     fi
@@ -496,7 +507,7 @@ function _zunit_run() {
 
   if [[ -n $output_text ]]; then
     # Set the log filepath
-    logfile_text="$zunit_config_directories_output/output.txt"
+    logfile_text="$output_dir/output.txt"
 
     # Print the header to the logfile
     echo 'TAP version 13' > $logfile_text
@@ -504,15 +515,20 @@ function _zunit_run() {
 
   if [[ -n $output_html ]]; then
     # Set the log filepath
-    logfile_html="$zunit_config_directories_output/output.html"
+    logfile_html="$output_dir/output.html"
 
     # Print the header to the logfile
     _zunit_html_header > $logfile_html
   fi
 
-  if [[ -n $zunit_config_directories_support ]]; then
+  # Check if support directory is specified in the config or as an option
+  if [[ -z $support_dir ]] && [[ -n "$zunit_config_directories_support" ]]; then
+    support_dir="$zunit_config_directories_support"
+  fi
+
+  if [[ -n $support_dir ]]; then
     # Check that the support directory exists
-    local support="$zunit_config_directories_support"
+    local support="$support_dir"
     if [[ ! -d $support ]]; then
       echo $(color red "Support directory at $support is missing")
       exit 1
@@ -556,9 +572,15 @@ function _zunit_run() {
 
   # If no arguments are passed, try to work out where the tests are
   if [[ ${#arguments} -eq 0 ]]; then
+    # Check if tests directory is specified in the config or as an option
+    if [[ -z $test_dir ]] && [[ -n "$zunit_config_directories_tests" ]]; then
+      test_dir="$zunit_config_directories_tests"
+    fi
+
     # Check for a path defined in .zunit.yml
-    if [[ -n $zunit_config_directories_tests ]]; then
-      arguments=("$zunit_config_directories_tests")
+    if [[ -n $test_dir ]]; then
+      arguments=("$test_dir")
+      echo $arguments
 
     # Fall back to the directory 'tests' by default
     else
