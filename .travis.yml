@@ -11,7 +11,7 @@ language: generic
 cache:
   apt: true
   directories:
-    - $HOME/.zvm
+  - "$HOME/.zvm"
 jobs:
   include:
   - stage: linux
@@ -43,12 +43,11 @@ jobs:
       api_key:
         secure: JudjZ9Ou15GKmgOga6qpcxtCKITpq+EnGCUvNAGefuuG/etxSAEdXQfjmC4VBzCAC9Pn1gkABFAASUtZdZ5xxXhxkuU/lTopJxWG2tdxNuvW/wflZNGdnxgWA1PcYptKrLoDRLzUpDtsnnvD75mMvAR8+YjRJk76gWVM02we2JR8WKcD1bchQiqzc7CK2X4kDL6zRayYpwFnFKhA8bTlIEJ36k92liTeW8VNwg+9CAsM2zjWpCKmLXrecNl3e5sO+4ssGU+J4gnWYSC112oEzLJzm3cYsEj8dTuFtVHby1DrLrpW1fPQdF1h1cwjHtQkbKTF5vrNKcCmSGcFxA2YbMu8aMdkEZmwN8JvShFamyyYHi90UTyv8PQ/WYER143zGZinZ2VeSaIlFEvH7R/sbS6t4DjbXV7rHF9Zbg0d3D7p71kNDpbtH1dkX6KXxtqCOOVRwAMhwRJ6c7VCXwj0AZEr6YrqZucPjbLTn9NVtI0WPZPOIL/HhyB6vzB1zunmjQERmcwNcC3gR47mmOPWfh1XaCpIurrZKjF+SfH/mDN6Tr24a9oeae6+subI5LW9G1qP2/GmibDVmlX+F1jE4xxKr6sIrzB/DLdYVtiSnzAmquZnGNunUCOMB6DN4nCajh9X3O/e2DzKImHSHZyYIThytSNyMs885ZBbev6F850=
       file:
-        - zunit
-        - zunit.zsh-completion
+      - zunit
+      - zunit.zsh-completion
       skip_cleanup: true
       on:
         tags: true
-
 before_script:
 - if [[ $(ls "$HOME/.zvm" | wc -l) -eq 0 ]]; then rm -rf "$HOME/.zvm"; fi
 - mkdir .bin
@@ -62,3 +61,5 @@ before_script:
 script: "./zunit"
 notifications:
   email: false
+  slack:
+    secure: gYbqJKOiko4AKjIY+68CxDPCyRQl22rdodRq55Wj745/ljyY5AQ8i3/Pvds19z2waX2ti232hWOczG09huYloTIDuiKNCqeedKVQQvThSqLW/8zYo1ETbOb09OPu6e68u8EAoPiwXeY56AqFEa5J3RBXP0cXl6EI9m1aL+LvGzV6AI149vh35Fib3a6Cr1JMspjf/iXf5LO9JI3YvdPI5xWGfjuqf7BWoJuQXsAIWtrpy9rHV1jfCFQNMuefwJruU0DbGEhW1er0HVWw4Sm8xP2BnIGoPDpqHUALaGs6RYBdsHTMUq9TjXVYNiYymvlpU4KpfUxOBQx8vIzzBwWjGua9YZsUMPxRw+ShVBnfVzMG/sGqG9zLSDMbMNiy5NXi9JxZi87/s9/7gUMWZqVXBucJ7L/xRr6xv/UTKe1Ur+Tb2FkZewWxkW3w8VU1uW5TgD1e72aeMHm+hXuBnKORIUB/BrNIYvfiUuKTMNZ6P78TgwGwe8BWA1NmqTwsyQip6OU7+OW5VYmB6Kv8YMZ87RtLTS6kPn2W5T+5wEYqTAMH4a1nbFglmM5Qu6i6Vf6Fhr05+YJtUToBQsB929VIqKVOlDYK8mMuS7K/B3dMSA/BjAgFQWDKaacGbM65PDhOZZTB6uTht9qvbxX0hLc7aU3Bj8Y7TRenv+BJwA26fnU=
