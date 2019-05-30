@@ -16,15 +16,16 @@ function _zunit_usage() {
   echo "  run [tests...]     Run tests"
   echo
   echo "$(color yellow 'Options:')"
-  echo "  -h, --help         Output help text and exit"
-  echo "  -v, --version      Output version information and exit"
-  echo "  -f, --fail-fast    Stop the test runner immediately after the first failure"
-  echo "  -t, --tap          Output results in a TAP compatible format"
-  echo "      --verbose      Prints full output from each test"
-  echo "      --output-text  Print results to a text log, in TAP compatible format"
-  echo "      --output-html  Print results to a HTML page"
-  echo "      --allow-risky  Supress warnings generated for risky tests"
-  echo "      --time-limit   Set a time limit in seconds for each test"
+  echo "  -h, --help             Output help text and exit"
+  echo "  -v, --version          Output version information and exit"
+  echo "  -f, --fail-fast        Stop the test runner immediately after the first failure"
+  echo "  -E, --no-capture-err   Don't capture stderr in tests"
+  echo "  -t, --tap              Output results in a TAP compatible format"
+  echo "      --verbose          Prints full output from each test"
+  echo "      --output-text      Print results to a text log, in TAP compatible format"
+  echo "      --output-html      Print results to a HTML page"
+  echo "      --allow-risky      Supress warnings generated for risky tests"
+  echo "      --time-limit <n>   Set a time limit of n seconds for each test"
 }
 
 ###

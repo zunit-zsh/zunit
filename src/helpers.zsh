@@ -92,7 +92,11 @@ function run() {
   fi
 
   # Store full output in a variable
-  output=$("${cmd[@]}" 2>&1)
+  if [[ $no_capture_err -eq 1 ]]; then
+    output=$("${cmd[@]}")
+  else
+    output=$("${cmd[@]}" 2>&1)
+  fi
 
   # Get the process exit state
   state="$?"

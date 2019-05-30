@@ -13,6 +13,7 @@ function _zunit_run_usage() {
   echo "  -h, --help             Output help text and exit"
   echo "  -v, --version          Output version information and exit"
   echo "  -f, --fail-fast        Stop the test runner immediately after the first failure"
+  echo "  -E, --no-cap-err       Don't capture stderr in tests"
   echo "  -t, --tap              Output results in a TAP compatible format"
   echo "      --verbose          Prints full output from each test"
   echo "      --output-text      Print results to a text log, in TAP compatible format"
@@ -179,10 +180,18 @@ function _zunit_execute_test() {
       }
 
       # Launch the async wrapper, and capture the output in a variable
-      output="$(__zunit_async_test_wrapper 2>&1)"
+      if [[ $no_capture_err -eq 1 ]]; then
+        output="$(__zunit_async_test_wrapper)"
+      else
+        output="$(__zunit_async_test_wrapper 2>&1)"
+      fi
     else
       # Launch the test, and capture the output in a variable
-      output="$(__zunit_tmp_test_function 2>&1)"
+      if [[ $no_capture_err -eq 1 ]]; then
+        output="$(__zunit_tmp_test_function)"
+      else
+        output="$(__zunit_tmp_test_function 2>&1)"
+      fi
     fi
 
     # Output the result to the user
@@ -436,12 +445,14 @@ function _zunit_run() {
   local -a arguments testfiles
   local fail_fast tap allow_risky verbose
   local output_text logfile_text output_html logfile_html
+  local no_capture_err=0
 
   # Load the datetime module, and record the start time
   zmodload zsh/datetime
   local start_time=$((EPOCHREALTIME*1000)) end_time
 
   zparseopts -D -E \
+    E=no_capture_err -no-capture-err=no_capture_err \
     h=help -help=help \
     v=version -version=version \
     f=fail_fast -fail-fast=fail_fast \
@@ -539,6 +550,10 @@ function _zunit_run() {
     shift time_limit
   elif [[ -n $zunit_config_time_limit ]]; then
     time_limit=$zunit_config_time_limit
+  fi
+
+  if [[ -n $no_capture_err ]]; then
+    no_capture_err=1
   fi
 
   arguments=("$@")
