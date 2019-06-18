@@ -1,0 +1,8 @@
+#!/usr/bin/env zunit
+
+@test 'Run standard-error.zsh' { 
+  run tests/fixtures/standard-error.zsh
+
+  assert $state equals 0
+  assert "$output" same_as 'Standard Output'
+}

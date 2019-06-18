@@ -445,7 +445,7 @@ function _zunit_run() {
   local -a arguments testfiles
   local fail_fast tap allow_risky verbose
   local output_text logfile_text output_html logfile_html
-  local no_capture_err=0
+  local no_capture_err
 
   # Load the datetime module, and record the start time
   zmodload zsh/datetime

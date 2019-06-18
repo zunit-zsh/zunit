@@ -1,0 +1,7 @@
+#!/usr/bin/env zunit
+
+@test 'Test option to prevent capture of stderr' {
+  run tests/fixtures/standard-error.zunit
+
+  assert "$output" does_not_contain 'Standard Error'
+}
