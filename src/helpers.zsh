@@ -114,6 +114,74 @@ function run() {
 }
 
 ###
+# Eval given code and capture its output and exit status
+###
+function evl() {
+  # Separation of the main zunit option scope
+  setopt localoptions
+
+  # Within tests, the shell is set to exit immediately when errors
+  # occur. Since we want to capture the exit code of the command
+  # we're running, we stop the shell from exiting on error temporarily
+  unsetopt ERR_EXIT
+
+  # Preserve current $IFS
+  local ___oldIFS=$IFS ___name
+  local -a ___cmd
+
+  # Store each word of the command in an array, and grab the first
+  # argument which is the command ___name
+  ___cmd=("${@[@]}")
+  ___name="${___cmd[1]}"
+
+  # If the command is not an existing command or file,
+  # then prepend the test directory to the path
+  type -- $___name > /dev/null
+  if [[ $? -ne 0 && ! -f $___name && -f "$testdir/${___name}" ]]; then
+    ___cmd[1]="$testdir/${___name}"
+  fi
+
+  # Store full output in a variable
+
+  local -a ___dont_quote
+  ___dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" )
+
+  # Prepare the output file
+  local ___OUTFILE=$(mktemp)
+
+  # The new line is important, it makes the error messages include the line
+  # number, i.e. e.g.:
+  #   eval:1: command not found: a-non-existent-command
+  # It would be skipped otherwise, i.e. "eval: command ..." would be printed.
+  # This is to maintain consistency with the messages printed from run().
+  IFS=$'\n' builtin eval "function __eval {
+        ${___cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~___dont_quote})}:+$MATCH}}:-\"$MATCH\"}}} \
+        }; __eval >!$___OUTFILE 2>&1";
+
+  # Get the process exit state
+  state="$?"
+
+  # $(<...) trims all trailing \n-s, therefore cat is being used
+  output="$(cat "$___OUTFILE")"
+
+  # Cleanup
+  unset -f __eval;
+  command rm -f "$___OUTFILE"
+
+  # Store individual lines of output in an array
+  IFS=$'\n'
+  lines=("${(@f)output}")
+
+  # Restore $IFS
+  IFS=$___oldIFS
+
+  # Print the command output if --verbose is specified
+  if [[ -n $verbose && -n $output ]]; then
+    echo $output
+  fi
+}
+
+###
 # Redirect the assertion shorthand to the correct function
 ###
 function assert() {
