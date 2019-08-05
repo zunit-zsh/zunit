@@ -153,7 +153,7 @@ function evl() {
   # Store full output in a variable
 
   local -a ___dont_quote
-  ___dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" )
+  ___dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" "\\|" "\\|\\|" "&" "&&" )
 
   # Prepare the output file
   local ___OUTFILE=$(mktemp)
