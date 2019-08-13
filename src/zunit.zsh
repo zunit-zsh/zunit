@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+setopt extendedglob typesetsilent
+
 ######################
 # Main zunit process #
 ######################
