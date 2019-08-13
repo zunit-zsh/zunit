@@ -86,13 +86,22 @@ function run() {
 
   # If the command is not an existing command or file,
   # then prepend the test directory to the path
-  type $name > /dev/null
+  type -- $name > /dev/null
   if [[ $? -ne 0 && ! -f $name && -f "$testdir/${name}" ]]; then
     cmd[1]="$testdir/${name}"
   fi
 
   # Store full output in a variable
-  output=$("${cmd[@]}" 2>&1)
+
+  local -a dont_quote
+  dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" "\|" "\\|\\|" "&" "&&" )
+
+  # The new line is important, it makes the error messages include the line
+  # number, i.e. e.g.:
+  #   run:1: command not found: a-non-existent-command
+  # It would be skipped otherwise, i.e. "run: command ..." would be printed
+  IFS=$'\n' eval "output=\$( function run {
+        ${cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~dont_quote})}:+$MATCH}}:-\"$MATCH\"}}} 2>&1 }; run )";
 
   # Get the process exit state
   state="$?"
