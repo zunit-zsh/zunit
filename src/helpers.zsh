@@ -200,3 +200,5 @@ function skip() {
   echo "$@"
   exit 48
 }
+
+# vim:ft=zsh:et:sts=2:sw=2
