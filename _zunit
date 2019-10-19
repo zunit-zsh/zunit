@@ -1,0 +1,55 @@
+#compdef zunit
+
+emulate -LR zsh
+setopt extendedglob warncreateglobal typesetsilent noshortloops rcquotes
+
+local curcontext="$curcontext" state state_descr line ret=1
+
+typeset -a commands
+commands=(
+    init:'Bootstrap zunit in a new project'
+    run:'Run tests; has an optional [tests] argument'
+)
+
+typeset -a roptions
+roptions=(
+  "-h":"Output help text and exit"
+  "-v":"Output version information and exit"
+  "-f":"Stop the test runner immediately after the first failure"
+  "-t":"Output results in a TAP compatible format"
+  "--help":"Output help text and exit"
+  "--version":"Output version information and exit"
+  "--fail-fast":"Stop the test runner immediately after the first failure"
+  "--tap":"Output results in a TAP compatible format"
+  "--verbose":"Prints full output from each test"
+  "--output-text":"Print results to a text log, in TAP compatible format"
+  "--output-html":"Print results to a HTML page"
+  "--allow-risky":"Supress warnings generated for risky tests"
+  "--time-limit":"Set a time limit in seconds for each test"
+)
+
+_arguments -C \
+    '1: :->command'\
+    '*: :->argument' && ret=0
+
+case $state in
+    command)
+        _alternative 'commands:command: _describe "zunit command" commands' \
+            'opts:option: _describe "zunit options" roptions' &&
+                ret=0
+        ;;
+    argument)
+        case $words[2] in
+            init)
+                _message "Hit enter to create the tests/ subdirectory and bootstrap zunit tests in it" && ret=0
+                ;;
+            run)
+                _message "Enter the test(s) name(s) and/or hit enter to run the test(s)" && ret=0
+                ;;
+            *)
+                ret=1
+                ;;
+        esac
+esac
+
+return "$ret"
