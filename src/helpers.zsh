@@ -94,14 +94,22 @@ function run() {
   # Store full output in a variable
 
   local -a dont_quote
-  dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" "\|" "\\|\\|" "&" "&&" )
+  dont_quote=(
+    ";" ">&" "|" "||" "&" "&&" ">" ">>" "<<<" "<" "<<"
+  )
+
+  # Quote for eval
+  cmd=( "${(q)cmd[@]}" )
+
+  # Remove quoting of the needed constructs like: >>
+  cmd=( "${cmd[@]//(#m)(${(~j.|.)dont_quote})/${(Q)MATCH}}" )
 
   # The new line is important, it makes the error messages include the line
   # number, i.e. e.g.:
   #   run:1: command not found: a-non-existent-command
   # It would be skipped otherwise, i.e. "run: command ..." would be printed
   IFS=$'\n' eval "output=\$( function run {
-        ${cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~dont_quote})}:+$MATCH}}:-\"$MATCH\"}}} 2>&1 }; run )";
+        ${cmd[@]} 2>&1 }; run )";
 
   # Get the process exit state
   state="$?"
@@ -153,7 +161,15 @@ function evl() {
   # Store full output in a variable
 
   local -a ___dont_quote
-  ___dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" "\\|" "\\|\\|" "&" "&&" )
+  ___dont_quote=(
+    ";" ">&" "|" "||" "&" "&&" ">" ">>" "<<<" "<" "<<"
+  )
+
+  # Quote for eval
+  ___cmd=( "${(q)___cmd[@]}" )
+
+  # Remove quoting of the needed constructs like: >>
+  ___cmd=( "${___cmd[@]//(#m)(${(~j.|.)${(q)___dont_quote[@]}})/${(Q)MATCH}}" )
 
   # Prepare the output file
   local ___OUTFILE=$(mktemp)
@@ -164,7 +180,7 @@ function evl() {
   # It would be skipped otherwise, i.e. "eval: command ..." would be printed.
   # This is to maintain consistency with the messages printed from run().
   IFS=$'\n' builtin eval "function __eval {
-        ${___cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~___dont_quote})}:+$MATCH}}:-\"$MATCH\"}}} \
+        ${___cmd[@]} \
         }; __eval >!$___OUTFILE 2>&1";
 
   # Get the process exit state
