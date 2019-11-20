@@ -103,6 +103,9 @@ function run() {
 
   # Remove quoting of the needed constructs like: >>
   cmd=( "${cmd[@]//(#m)(${(~j.|.)dont_quote})/${(Q)MATCH}}" )
+  
+  # Also remove one-level of the quoting from \$var, \{, etc.
+  ___cmd=( "${___cmd[@]//(#m)\\[$\{\}()@]/${(Q)MATCH}}" )
 
   # The new line is important, it makes the error messages include the line
   # number, i.e. e.g.:
@@ -170,6 +173,9 @@ function evl() {
 
   # Remove quoting of the needed constructs like: >>
   ___cmd=( "${___cmd[@]//(#m)(${(~j.|.)${(q)___dont_quote[@]}})/${(Q)MATCH}}" )
+
+  # Also remove one-level of the quoting from \$var, \{
+  ___cmd=( "${___cmd[@]//(#m)\\[$\{\}()@]/${(Q)MATCH}}" )
 
   # Prepare the output file
   local ___OUTFILE=$(mktemp)
