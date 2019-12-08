@@ -94,14 +94,23 @@ function run() {
   # Store full output in a variable
 
   local -a dont_quote
-  dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" "\|" "\\|\\|" "&" "&&" )
+  dont_quote=(
+    # Allow redirections and running multiple commands
+    "[[:digit:]]#(>|>>)(&|)[[:digit:]]#"
+    "[[:digit:]]#(<|<<)(&|)[[:digit:]]#"
+    "<<<" ";" "\\|" "\\|\\|" "&" "&&"
+
+    # Skip quoting of var=... -like strings and also of a single
+    # `)' as it might follow var=( ... array assignment
+    "([0-9]#|[a-zA-Z_][a-zA-Z0-9_]#)=*" "\\)"
+  )
 
   # The new line is important, it makes the error messages include the line
   # number, i.e. e.g.:
   #   run:1: command not found: a-non-existent-command
   # It would be skipped otherwise, i.e. "run: command ..." would be printed
   IFS=$'\n' eval "output=\$( function run {
-        ${cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~dont_quote})}:+$MATCH}}:-\"$MATCH\"}}} 2>&1 }; run )";
+  ${cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~dont_quote})}:+$MATCH}}:-\"${MATCH//(#b)([\"\`\\])/\\${match[1]}}\"}}} 2>&1 }; run )";
 
   # Get the process exit state
   state="$?"
@@ -153,7 +162,16 @@ function evl() {
   # Store full output in a variable
 
   local -a ___dont_quote
-  ___dont_quote=( ";" "[[:digit:]]>&[[:digit:]]" "\\|" "\\|\\|" "&" "&&" )
+  ___dont_quote=(
+    # Allow redirections and running multiple commands
+    "[[:digit:]]#(>|>>)(&|)[[:digit:]]#"
+    "[[:digit:]]#(<|<<)(&|)[[:digit:]]#"
+    "<<<" ";" "\\|" "\\|\\|" "&" "&&"
+
+    # Skip quoting of var=... -like strings and also of a single
+    # `)' as it might follow var=( ... array assignment
+    "([0-9]#|[a-zA-Z_][a-zA-Z0-9_]#)=*" "\\)"
+  )
 
   # Prepare the output file
   local ___OUTFILE=$(mktemp)
@@ -164,7 +182,7 @@ function evl() {
   # It would be skipped otherwise, i.e. "eval: command ..." would be printed.
   # This is to maintain consistency with the messages printed from run().
   IFS=$'\n' builtin eval "function __eval {
-        ${___cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~___dont_quote})}:+$MATCH}}:-\"$MATCH\"}}} \
+        ${___cmd[@]/(#m)*/${${${${${(M)MATCH:#(${(j:|:)~___dont_quote})}:+$MATCH}}:-\"${MATCH//(#b)([\"\`\\])/\\${match[1]}}\"}}} \
         }; __eval >!$___OUTFILE 2>&1";
 
   # Get the process exit state
