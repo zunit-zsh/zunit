@@ -403,6 +403,11 @@ function _zunit_parse_argument() {
   if [[ -d $argument ]]; then
     # Loop through each of the files in the directory
     for file in $(find $argument -mindepth 1 -maxdepth 1); do
+      # Skip further processing for files without a .zunit extension
+      if [[ -f $file && $file != *.zunit ]]; then
+        continue
+      fi
+
       # Run it through the parser again
       _zunit_parse_argument $file
     done
