@@ -581,7 +581,10 @@ function _zunit_run() {
   [[ -n $output_html ]] && _zunit_html_footer >> $logfile_html
 
   # Output results to screen and kill the progress indicator
-  [[ -z $tap ]] && _zunit_output_results && revolver stop
+  if [[ -z $tap ]]; then
+      _zunit_output_results
+      revolver stop
+  fi
 
   # If the total of ($passed + $skipped) is not equal to the
   # total, then there must have been failures, errors or warnings,
