@@ -256,7 +256,7 @@ function _zunit_run_testfile() {
     # Match current line against pattern
     if [[ "$line" =~ $pattern ]]; then
       # Get test name from matches
-      testname="${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}"
+      testname="${line[(( ${line[(i)[\'\\\"]]}+1 )),(( ${line[(I)[\'\\\"]]}-1 ))]}"
 
       # If a test name has been passed to the CLI, don't parse this test
       # unless it matches the name passed
