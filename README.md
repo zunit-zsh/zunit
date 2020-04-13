@@ -21,6 +21,21 @@ zulu install zunit
   ./build.zsh
   zulu link zunit
   ```
+  
+### [zplug](https://github.com/zplug/zplug)
+
+ZUnit and its dependencies can all be installed with zplug.
+
+```sh
+zplug 'molovo/revolver', \
+  as:command, \
+  use:revolver
+zplug 'zunit-zsh/zunit', \
+  as:command, \
+  use:zunit, \
+  hook-build:'./build.zsh'
+```
+
 
 ### Homebrew
 
