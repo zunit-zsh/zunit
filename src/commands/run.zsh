@@ -235,7 +235,7 @@ function _zunit_encode_test_name() {
 ###
 function _zunit_run_testfile() {
   local testbody testname pattern \
-        setup teardown
+        setup teardown start_index end_index
   local -a bits; bits=("${(s/@/)1}")
   local testfile="${bits[1]}" test_to_run="${bits[2]}" testdir="$(dirname "$testfile")"
   local -a lines tests test_names
@@ -256,7 +256,9 @@ function _zunit_run_testfile() {
     # Match current line against pattern
     if [[ "$line" =~ $pattern ]]; then
       # Get test name from matches
-      testname="${line[(( ${line[(i)[\']]}+1 )),(( ${line[(I)[\']]}-1 ))]}"
+      start_index=${line[(i)['\"]]}
+      end_index=${line[(I)['\"]]}
+      testname="${line[(( $start_index + 1 )),(( $end_index - 1 ))]}"
 
       # If a test name has been passed to the CLI, don't parse this test
       # unless it matches the name passed
