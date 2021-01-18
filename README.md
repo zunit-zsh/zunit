@@ -75,6 +75,23 @@ The body of each test can contain any valid ZSH code. The zunit shebang `#!/usr/
 
 For a full breakdown of ZUnit's syntax and functionality, check out the [official documentation](https://zunit.xyz/docs/).
 
+## Running on CI
+
+### Github Actions
+
+For running zunit in Github Actions you can use @badouralix [docker image](https://hub.docker.com/r/badouralix/zunit) by establishing a workflow step like the one below:
+
+```yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ZUnit step
+      - uses: actions/checkout@v2
+      - run: docker run -t --rm -v $PWD:/app:ro badouralix/zunit    
+```
+
 ## Contributing
 
 All contributions are welcome, and encouraged. Please read our [contribution guidelines](contributing.md) and [code of conduct](code-of-conduct.md) for more information.
