@@ -36,6 +36,16 @@ zplug 'zunit-zsh/zunit', \
   hook-build:'./build.zsh'
 ```
 
+### [zinit](https://zdharma.github.io/zinit/wiki/)
+
+ZUnit and its dependencies can all be installed with zinit.
+
+```sh
+zinit wait lucid for \
+  as"program" pick"revolver" molovo/revolver \
+  as"program" atclone'./build.zsh' pick"zunit" zunit-zsh/zunit \
+  ;
+```
 
 ### Homebrew
 
