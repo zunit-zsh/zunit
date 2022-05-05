@@ -21,6 +21,7 @@ _zunit() {
     '(-v --version)'{-v,--version}'[show version information and exit]' \
     '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
     '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
+    '(-q --quiet)'{-q,--quiet}'[supress revolver spinner for tests]' \
     '--verbose[prints full output from each test]' \
     '--output-text[print results to a text log, in TAP compatible format]' \
     '--output-html[print results to a HTML page]' \
@@ -43,6 +44,7 @@ _zunit() {
             '(-h --help)'{-h,--help}'[show help text and exit]' \
             '(-f --fail-fast)'{-f,--fail-fast}'[stop execution after the first failure]' \
             '(-t --tap)'{-t,--tap}'[output results in a TAP compatible format]' \
+            '(-q --quiet)'{-q,--quiet}'[supress revolver spinner for tests]' \
             '--verbose[prints full output from each test]' \
             '--output-text[print results to a text log, in TAP compatible format]' \
             '--output-html[print results to a HTML page]' \

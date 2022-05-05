@@ -47,7 +47,7 @@ function _zunit_success() {
     return
   fi
 
-  echo "$(color green '✔') ${name}"
+  echo "$(color green 'PASS') ${name}"
 }
 
 ###
@@ -65,7 +65,7 @@ function _zunit_failure() {
   if [[ -n $tap ]]; then
     _zunit_tap_failure "$@"
   else
-    echo "$(color red '✘' ${name})"
+    echo "$(color red 'FAILURE' ${name})"
     echo "  $(color red underline ${message})"
     echo "  $(color red ${output})"
   fi
@@ -88,7 +88,7 @@ function _zunit_error() {
   if [[ -n $tap ]]; then
     _zunit_tap_error "$@"
   else
-    echo "$(color red '‼' ${name})"
+    echo "$(color red 'ERROR' ${name})"
     echo "  $(color red underline ${message})"
     echo "  $(color red ${output})"
   fi
@@ -113,7 +113,7 @@ function _zunit_warn() {
     return
   fi
 
-  echo "$(color yellow '‼') ${name}"
+  echo "$(color yellow 'WARNING') ${name}"
   echo "  $(color yellow underline ${message})"
 }
 

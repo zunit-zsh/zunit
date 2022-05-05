@@ -14,6 +14,8 @@ function _zunit_run_usage() {
   echo "  -v, --version          Output version information and exit"
   echo "  -f, --fail-fast        Stop the test runner immediately after the first failure"
   echo "  -t, --tap              Output results in a TAP compatible format"
+  echo "  -t, --tap              Output results in a TAP compatible format"
+  echo "  -q, --quiet            Supress revolver spinner for tests"
   echo "      --verbose          Prints full output from each test"
   echo "      --output-text      Print results to a text log, in TAP compatible format"
   echo "      --output-html      Print results to a HTML page"
@@ -47,12 +49,12 @@ function _zunit_output_results() {
   echo
   echo "$total tests run in $(_zunit_human_time $elapsed)"
   echo
-  echo "$(color yellow underline 'Results')                        "
-  echo "$(color green '✔') Passed      $passed                    "
-  echo "$(color red '✘') Failed      $failed                      "
-  echo "$(color red '‼') Errors      $errors                      "
-  echo "$(color magenta '●') Skipped     $skipped                 "
-  echo "$(color yellow '‼') Warnings    $warnings                 "
+  echo "$(color yellow  underline 'Results')                        "
+  echo "$(color green   '✔') Passed:   $passed                    "
+  echo "$(color red     '✘') Failed:   $failed                      "
+  echo "$(color red     '‼') Errors:   $errors                      "
+  echo "$(color magenta '●') Skipped:  $skipped                 "
+  echo "$(color yellow  '‼') Warnings: $warnings                 "
   echo
 
   [[ -n $output_text ]] && echo "TAP report written at $PWD/$logfile_text"
