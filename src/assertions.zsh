@@ -435,3 +435,29 @@ function _zunit_assert_is_executable() {
   echo "'$pathname' does not exist or is not executable"
   exit 1
 }
+
+###
+# Assert the file content matches golden file.
+###
+function _zunit_assert_is_golden_file() {
+  local pathname=$1 filepath goldenname=$2 goldenpath
+
+  # If filepath is relative, prepend the test directory
+  if [[ "${pathname:0:1}" != "/" ]]; then
+    filepath="$testdir/${pathname}"
+  else
+    filepath="$pathname"
+  fi
+  
+  # If goldenpath is relative, prepend the test directory
+  if [[ "${goldenname:0:1}" != "/" ]]; then
+    goldenpath="$testdir/${goldenname}"
+  else
+    goldenpath="$goldenname"
+  fi
+
+  cmp -s $filepath $goldenpath && return 0
+
+  echo "'$pathname' does not match golden file content at '$goldenname'"
+  exit 1
+}
