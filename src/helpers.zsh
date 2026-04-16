@@ -18,6 +18,12 @@ function color() {
     strikethrough|s)  b=9; shift ;;
   esac
 
+  if [[ -n "" ]]
+  then
+    echo "$@"
+    return
+  fi
+
   case $color in
     black|b)    echo "\033[${b};30m${@}\033[0;m" ;;
     red|r)      echo "\033[${b};31m${@}\033[0;m" ;;
