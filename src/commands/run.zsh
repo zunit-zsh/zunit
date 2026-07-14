@@ -82,8 +82,11 @@ function _zunit_execute_test() {
       # Add an exit handler which calls the teardown function if it is
       # defined and the test exits early
       if (( \$+functions[__zunit_test_teardown] )); then
-        zshexit() {
+        TRAPEXIT() {
           __zunit_test_teardown 2>&1
+        }
+        TRAPZERR() {
+          [[ -o ERR_EXIT ]] && __zunit_test_teardown 2>&1
         }
       fi
 
@@ -101,14 +104,6 @@ function _zunit_execute_test() {
       # The test body is printed here, so when we eval the wrapper
       # function it will be read as part of the body of this function
       ${body}
-
-      # If a teardown function is defined, run it now
-      if (( \$+functions[__zunit_test_teardown] )); then
-        __zunit_test_teardown 2>&1
-      fi
-
-      # Remove the error handler
-      zshexit() {}
 
       # Check the assertion count, and if it is 0, return
       # the warning exit code

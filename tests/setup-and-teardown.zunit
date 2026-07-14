@@ -1,27 +1,50 @@
 #!/usr/bin/env zunit
 
 @setup {
-	SOME_VAR='rainbows'
+  SOME_VAR='rainbows'
 }
 
 @teardown {
-	unset SOME_VAR
+  unset SOME_VAR
+  unset SOME_VAR_TEARDOWN
 }
 
 @test 'Check value of SOME_VAR' {
-	assert $SOME_VAR same_as 'rainbows'
+  assert $SOME_VAR same_as 'rainbows'
 }
 
 @test 'Change value of SOME_VAR' {
-	SOME_VAR='unicorns'
-	assert $SOME_VAR same_as 'unicorns'
+  SOME_VAR='unicorns'
+  assert $SOME_VAR same_as 'unicorns'
 }
 
 @test 'Check value of SOME_VAR again' {
-	# Check will fail, because the variable was unset in
-	# the @teardown method, and then reset to 'rainbows'
-	# when @setup was run again.
-	run assert $SOME_VAR same_as 'unicorns'
+  # Check will fail, because the variable was unset in
+  # the @teardown method, and then reset to 'rainbows'
+  # when @setup was run again.
+  run assert $SOME_VAR same_as 'unicorns'
 
-	assert $state equals 1
+  assert $state equals 1
+}
+
+@test 'Change value of SOME_VAR_TEARDOWN' {
+  SOME_VAR_TEARDOWN='rainbows'
+  run true
+
+  assert $state equals 0
+}
+
+@test 'Check value of SOME_VAR_TEARDOWN' {
+  assert $SOME_VAR_TEARDOWN is_empty
+}
+
+@test 'Change value of SOME_VAR_TEARDOWN again' {
+  SOME_VAR_TEARDOWN='rainbows'
+  run false
+
+  assert $state equals 1
+}
+
+@test 'Check value of SOME_VAR_TEARDOWN again' {
+  assert $SOME_VAR_TEARDOWN is_empty
 }
