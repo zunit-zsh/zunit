@@ -130,6 +130,65 @@ function _zunit_coverage_includes() {
 }
 
 ###
+# Work out which paths coverage should be measured within, from the
+# values in .zunit.yml. Returns non-zero if there is nothing to measure
+###
+function _zunit_coverage_configure() {
+  local value
+
+  zunit_coverage_paths=()
+  zunit_coverage_exclude=()
+
+  # Values arrive from the config parser as arrays, and each of them
+  # may list more than one path, separated by commas or spaces
+  for value in "${zunit_config_coverage_paths[@]}"; do
+    zunit_coverage_paths+=(${=${value//,/ }})
+  done
+
+  for value in "${zunit_config_coverage_exclude[@]}"; do
+    zunit_coverage_exclude+=(${=${value//,/ }})
+  done
+
+  # Test files are not the code under test, so the test directory is
+  # left out by default. Configuring exclusions replaces this, rather
+  # than adding to it, so that measuring tests remains possible
+  if (( ! ${#zunit_coverage_exclude} )) && [[ -n $zunit_config_directories_tests ]]; then
+    zunit_coverage_exclude=("$zunit_config_directories_tests")
+  fi
+
+  (( ${#zunit_coverage_paths} ))
+}
+
+###
+# Print the number of covered lines in each file which was measured
+###
+function _zunit_coverage_summary() {
+  local key file
+  local -A files
+
+  for key in "${(k)zunit_coverage_hits[@]}"; do
+    file="${key%:*}"
+    files[$file]=$(( ${files[$file]:-0} + 1 ))
+  done
+
+  echo
+  echo "$(color yellow underline 'Coverage')                        "
+
+  if (( ! ${#files} )); then
+    echo "$(color yellow 'No lines were recorded within the configured paths')"
+    return 0
+  fi
+
+  # Until the line analyzer lands there is no denominator to report a
+  # percentage against, so report what was executed and nothing more
+  for file in "${(@ok)files}"; do
+    printf '%-52s %6d lines\n' "${file#$PWD/}" "$files[$file]"
+  done
+
+  return 0
+}
+
+###
 # Read a datafile of coverage records into $zunit_coverage_hits
 ###
 function _zunit_coverage_parse() {

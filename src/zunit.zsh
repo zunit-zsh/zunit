@@ -27,6 +27,7 @@ function _zunit_usage() {
   echo "      --output-html  Print results to a HTML page"
   echo "      --allow-risky  Supress warnings generated for risky tests"
   echo "      --time-limit   Set a time limit in seconds for each test"
+  echo "      --coverage     Measure which lines of code the tests execute"
 }
 
 ###

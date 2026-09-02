@@ -1,0 +1,100 @@
+#!/usr/bin/env zunit
+
+@setup {
+  zunit_bin="$PWD/zunit"
+  coverage_project="$PWD/tests/_support/coverage/project"
+
+  # Each test works against its own copy of the fixture project, so
+  # that it can rewrite the config without disturbing anything else
+  coverage_tmp="$PWD/tests/_output/coverage-project"
+  rm -rf "$coverage_tmp"
+  cp -R "$coverage_project" "$coverage_tmp"
+}
+
+@teardown {
+  rm -rf "$coverage_tmp"
+}
+
+@test 'Test the --coverage option reports covered lines' {
+  evl cd "$coverage_tmp" '&&' "$zunit_bin" run --coverage
+
+  assert $state equals 0
+  assert "$output" contains 'Coverage'
+  assert "$output" contains 'src/calculator.zsh'
+}
+
+@test 'Test coverage is not reported unless it is asked for' {
+  evl cd "$coverage_tmp" '&&' "$zunit_bin" run
+
+  assert $state equals 0
+  assert "$output" does_not_contain 'Coverage'
+}
+
+@test 'Test coverage can be enabled in the config file' {
+  sed -i.bak 's/enabled: false/enabled: true/' "$coverage_tmp/.zunit.yml"
+
+  evl cd "$coverage_tmp" '&&' "$zunit_bin" run
+
+  assert $state equals 0
+  assert "$output" contains 'src/calculator.zsh'
+}
+
+@test 'Test coverage without any configured paths fails' {
+  sed -i.bak '/paths:/d' "$coverage_tmp/.zunit.yml"
+
+  evl cd "$coverage_tmp" '&&' "$zunit_bin" run --coverage
+
+  assert $state equals 1
+  assert "$output" contains 'Coverage paths must be specified'
+}
+
+@test 'Test coverage writes a datafile' {
+  evl cd "$coverage_tmp" '&&' "$zunit_bin" run --coverage
+
+  assert "$coverage_tmp/tests/_output/coverage.data" is_file
+}
+
+@test 'Test coverage paths may be separated by commas' {
+  zunit_config_coverage_paths=('src, lib')
+  zunit_config_coverage_exclude=()
+
+  _zunit_coverage_configure
+
+  assert "${#zunit_coverage_paths}" equals 2
+  assert 'src' in ${zunit_coverage_paths[@]}
+  assert 'lib' in ${zunit_coverage_paths[@]}
+}
+
+@test 'Test coverage excludes the test directory by default' {
+  zunit_config_coverage_paths=('src')
+  zunit_config_coverage_exclude=()
+  zunit_config_directories_tests='tests'
+
+  _zunit_coverage_configure
+
+  assert 'tests' in ${zunit_coverage_exclude[@]}
+}
+
+@test 'Test configured coverage exclusions replace the default' {
+  zunit_config_coverage_paths=('src')
+  zunit_config_coverage_exclude=('src/vendor')
+  zunit_config_directories_tests='tests'
+
+  _zunit_coverage_configure
+
+  assert "${#zunit_coverage_exclude}" equals 1
+  assert 'src/vendor' in ${zunit_coverage_exclude[@]}
+}
+
+@test 'Test coverage configuration fails without any paths' {
+  local state
+
+  zunit_config_coverage_paths=()
+  zunit_config_coverage_exclude=()
+
+  _zunit_coverage_configure && state=$? || state=$?
+
+  assert $state equals 1
+}
+
+# vim:ft=zsh:et:sts=2:sw=2

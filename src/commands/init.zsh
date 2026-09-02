@@ -50,7 +50,10 @@ directories:
   support: tests/_support
 time_limit: 0
 fail_fast: false
-allow_risky: false"
+allow_risky: false
+coverage:
+  enabled: false
+  paths: src"
 
   # An example test file
   local example="#!/usr/bin/env zunit

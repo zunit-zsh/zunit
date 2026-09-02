@@ -19,6 +19,7 @@ function _zunit_run_usage() {
   echo "      --output-html      Print results to a HTML page"
   echo "      --allow-risky      Supress warnings generated for risky tests"
   echo "      --time-limit <n>   Set a time limit of n seconds for each test"
+  echo "      --coverage         Measure which lines of code the tests execute"
 }
 
 ###
@@ -54,6 +55,12 @@ function _zunit_output_results() {
   echo "$(color magenta '●') Skipped     $skipped                 "
   echo "$(color yellow '‼') Warnings    $warnings                 "
   echo
+
+  if [[ -n $coverage ]]; then
+    _zunit_coverage_summary
+    echo
+    echo "Coverage data written at $PWD/$logfile_coverage"
+  fi
 
   [[ -n $output_text ]] && echo "TAP report written at $PWD/$logfile_text"
   [[ -n $output_html ]] && echo "HTML report written at $PWD/$logfile_html"
@@ -441,6 +448,7 @@ function _zunit_run() {
   local -a arguments testfiles
   local fail_fast tap allow_risky verbose
   local output_text logfile_text output_html logfile_html
+  local coverage logfile_coverage
 
   # Load the datetime module, and record the start time
   zmodload zsh/datetime
@@ -455,7 +463,8 @@ function _zunit_run() {
     -output-text=output_text \
     -output-html=output_html \
     -allow-risky=allow_risky \
-    -time-limit:=time_limit
+    -time-limit:=time_limit \
+    -coverage=coverage
 
   # TAP output is enabled
   if [[ -n $tap ]] || [[ "$zunit_config_tap" = "true" ]]; then
@@ -475,8 +484,13 @@ function _zunit_run() {
     echo
   fi
 
+  # Check if coverage is specified in the config or as an option
+  if [[ -z $coverage ]] && [[ "$zunit_config_coverage_enabled" = "true" ]]; then
+    coverage=1
+  fi
+
   # Text output has been requested
-  if [[ -n $output_text || -n $output_html ]]; then
+  if [[ -n $output_text || -n $output_html || -n $coverage ]]; then
     # Make sure we have a config file, otherwise we can't determine
     # which directory to write logs to
     if [[ $missing_config -eq 1 ]]; then
@@ -506,6 +520,21 @@ function _zunit_run() {
 
     # Print the header to the logfile
     _zunit_html_header > $logfile_html
+  fi
+
+  if [[ -n $coverage ]]; then
+    # Without any paths to measure, coverage would silently record
+    # nothing at all, so say so rather than reporting an empty result
+    if ! _zunit_coverage_configure; then
+      echo $(color red 'Coverage paths must be specified in .zunit.yml') >&2
+      echo 'e.g.' >&2
+      echo '  coverage:' >&2
+      echo '    paths: src' >&2
+      exit 1
+    fi
+
+    logfile_coverage="$zunit_config_directories_output/coverage.data"
+    _zunit_coverage_init "$logfile_coverage" || exit 1
   fi
 
   if [[ -n $zunit_config_directories_support ]]; then
@@ -579,6 +608,13 @@ function _zunit_run() {
   done
 
   end_time=$((EPOCHREALTIME*1000))
+
+  # Close the coverage datafile and read the records back before
+  # anything is reported
+  if [[ -n $coverage ]]; then
+    _zunit_coverage_finish
+    _zunit_coverage_parse
+  fi
 
   # Print report footers
   [[ -n $tap ]] && echo "1..$total"

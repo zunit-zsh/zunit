@@ -2,6 +2,10 @@
 /tests/_output/*
 !/tests/_output/.gitkeep
 
+# The same, for the fixture project the coverage tests run against
+/tests/_support/coverage/project/tests/_output/*
+!/tests/_support/coverage/project/tests/_output/.gitkeep
+
 # Ignore the compiled program
 /zunit
 
