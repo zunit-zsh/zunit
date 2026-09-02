@@ -4,3 +4,6 @@
 
 # Ignore the compiled program
 /zunit
+
+# Ignore dependencies fetched for local test runs, as CI does
+/.bin/
