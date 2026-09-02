@@ -179,13 +179,18 @@ function _zunit_execute_test() {
       }
 
       # Launch the async wrapper, and capture the output in a variable
+      _zunit_coverage_enable
       output="$(__zunit_async_test_wrapper 2>&1)"
+      _zunit_coverage_disable
     else
       # Launch the test, and capture the output in a variable
+      _zunit_coverage_enable
       output="$(__zunit_tmp_test_function 2>&1)"
+      _zunit_coverage_disable
     fi
 
-    # Output the result to the user
+    # Output the result to the user. Coverage collection is stopped
+    # above without disturbing the status of the test itself
     state=$?
     if [[ $state -eq 48 ]]; then
       _zunit_skip $output
