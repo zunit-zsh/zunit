@@ -25,7 +25,8 @@ _zunit() {
     '--output-text[print results to a text log, in TAP compatible format]' \
     '--output-html[print results to a HTML page]' \
     '--allow-risky[supress warnings generated for risky tests]' \
-    '--time-limit[set a time limit in seconds for each test]'
+    '--time-limit[set a time limit in seconds for each test]' \
+    '--coverage[measure which lines of code the tests execute]'
 
   case "$state" in
     args )
@@ -47,7 +48,8 @@ _zunit() {
             '--output-text[print results to a text log, in TAP compatible format]' \
             '--output-html[print results to a HTML page]' \
             '--allow-risky[supress warnings generated for risky tests]' \
-            '--time-limit[set a time limit in seconds for each test]'
+            '--time-limit[set a time limit in seconds for each test]' \
+            '--coverage[measure which lines of code the tests execute]'
 
           _arguments \
             '*:tests:_files'

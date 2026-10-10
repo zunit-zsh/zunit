@@ -1,0 +1,9 @@
+#!/usr/bin/env zunit
+
+@test 'Test adding two numbers' {
+  load ../src/calculator
+
+  run calculator_add 2 3
+
+  assert $output same_as '5'
+}

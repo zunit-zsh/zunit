@@ -1,0 +1,169 @@
+#!/usr/bin/env zunit
+
+@setup {
+  coverage_support="$PWD/tests/_support/coverage"
+  coverage_data="$PWD/tests/_output/coverage.data"
+
+  zunit_coverage_paths=("$coverage_support")
+  zunit_coverage_exclude=()
+  zunit_coverage_hits=()
+}
+
+@teardown {
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+  rm -f "$coverage_data"
+}
+
+@test 'Test coverage records the lines which were executed' {
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source "$coverage_support/simple.zsh"
+  coverage_fixture_covered 3 4
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  _zunit_coverage_parse "$coverage_data"
+
+  # The top-level assignment, and both function definitions, are
+  # executed when the file is sourced
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:3]}" equals 1
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:5]}" equals 1
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:11]}" equals 1
+
+  # The body of the function which was called
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:6]}" equals 1
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:7]}" equals 1
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:8]}" equals 1
+}
+
+@test 'Test coverage does not record lines which were not executed' {
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source "$coverage_support/simple.zsh"
+  coverage_fixture_covered 3 4
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  _zunit_coverage_parse "$coverage_data"
+
+  # The body of the function which was never called
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:12]}" is_empty
+}
+
+@test 'Test coverage counts each execution of a line' {
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source "$coverage_support/loop.zsh"
+  coverage_fixture_loop
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  _zunit_coverage_parse "$coverage_data"
+
+  # The body of the loop runs three times, the line above it once
+  assert "${zunit_coverage_hits[$coverage_support/loop.zsh:2]}" equals 1
+  assert "${zunit_coverage_hits[$coverage_support/loop.zsh:4]}" equals 3
+}
+
+@test 'Test coverage resolves relative paths' {
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source tests/_support/coverage/simple.zsh
+  coverage_fixture_covered 3 4
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  _zunit_coverage_parse "$coverage_data"
+
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:8]}" equals 1
+}
+
+@test 'Test coverage does not contaminate output' {
+  local result
+
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source "$coverage_support/simple.zsh"
+  result="$(coverage_fixture_covered 3 4 2>&1)"
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  assert "$result" same_as '7'
+}
+
+@test 'Test coverage preserves the exit status of a test' {
+  local result
+  integer state
+
+  function coverage_fixture_exits() {
+    echo 'output'
+    return 42
+  }
+
+  # Mirror the way the runner captures a test, which checks the exit
+  # status immediately after collection has been stopped
+  unsetopt ERR_EXIT
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  result="$(coverage_fixture_exits 2>&1)"
+  _zunit_coverage_disable
+  state=$?
+  setopt ERR_EXIT
+
+  _zunit_coverage_finish
+
+  assert $state equals 42
+  assert "$result" same_as 'output'
+}
+
+@test 'Test coverage ignores files outside the configured paths' {
+  zunit_coverage_paths=("$coverage_support/excluded")
+
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source "$coverage_support/simple.zsh"
+  coverage_fixture_covered 3 4
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  _zunit_coverage_parse "$coverage_data"
+
+  assert "${zunit_coverage_hits[$coverage_support/simple.zsh:8]}" is_empty
+}
+
+@test 'Test coverage exclusions take precedence over inclusions' {
+  zunit_coverage_exclude=("$coverage_support/excluded")
+
+  _zunit_coverage_init "$coverage_data"
+  _zunit_coverage_enable
+  source "$coverage_support/excluded/excluded.zsh"
+  coverage_fixture_excluded
+  _zunit_coverage_disable
+  _zunit_coverage_finish
+
+  _zunit_coverage_parse "$coverage_data"
+
+  assert "${zunit_coverage_hits[$coverage_support/excluded/excluded.zsh:2]}" is_empty
+}
+
+@test 'Test coverage parsing a missing datafile does nothing' {
+  _zunit_coverage_parse "$PWD/tests/_output/does-not-exist.data"
+
+  assert "${#zunit_coverage_hits}" equals 0
+}
+
+@test 'Test coverage collection is inert until it is started' {
+  # The runner calls these on every test whether coverage was
+  # requested or not, so they must do nothing at all by default
+  _zunit_coverage_enable
+  source "$coverage_support/simple.zsh"
+  coverage_fixture_covered 3 4
+  _zunit_coverage_disable
+
+  _zunit_coverage_parse "$coverage_data"
+
+  assert "${#zunit_coverage_hits}" equals 0
+}
+
+# vim:ft=zsh:et:sts=2:sw=2
