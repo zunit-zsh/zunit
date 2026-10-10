@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
+      # Pinned to known commits, rather than fetched from master, so that
+      # a change upstream cannot alter what runs here
+      - name: Install dependencies
+        run: |
+          mkdir -p .bin
+          curl -fsSL https://raw.githubusercontent.com/molovo/revolver/6424e6cb14da38dc5d7760573eb6ecb2438e9661/revolver -o .bin/revolver
+          curl -fsSL https://raw.githubusercontent.com/molovo/color/57c9cd51c0495a3faffb203c8db74e0f60f3db73/color.zsh -o .bin/color
+          chmod u+x .bin/revolver .bin/color
+          echo "$PWD/.bin" >> "$GITHUB_PATH"
+
+      - name: Build
+        run: zsh --version && ./build.zsh
+
+      - name: Test
+        run: ./zunit
